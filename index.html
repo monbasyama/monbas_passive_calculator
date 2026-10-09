@@ -7,20 +7,18 @@
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   </head>
-  <body>
+  <body data-page="party">
     <div class="app-shell">
       <header class="topbar">
         <div>
           <p class="eyebrow">Monbas Passive Calculator</p>
           <h1>パッシブ比較・パーティー作成アプリ</h1>
         </div>
-        <button id="pdf-export-btn" class="primary-btn">PDF出力</button>
+        <div class="topbar-actions">
+          <a href="monster-manager.html" class="secondary-btn inline-link">モンスター管理</a>
+          <button id="pdf-export-btn" class="primary-btn">PDF出力</button>
+        </div>
       </header>
-
-      <nav class="tabs" aria-label="Menu tabs">
-        <button class="tab-btn active" data-target="party-builder-section">パーティー作成</button>
-        <button class="tab-btn" data-target="monster-management-section">モンスター管理</button>
-      </nav>
 
       <main>
         <section id="party-builder-section" class="panel active-panel">
@@ -37,39 +35,6 @@
           </div>
 
           <div id="parties-container" class="parties-container"></div>
-        </section>
-
-        <section id="monster-management-section" class="panel hidden-panel">
-          <div class="section-header">
-            <h2>モンスター管理</h2>
-            <button id="new-monster-btn" class="secondary-btn">新規追加</button>
-          </div>
-
-          <div class="monster-form-card">
-            <form id="monster-form">
-              <input type="hidden" id="monster-id" />
-
-              <div class="field-grid">
-                <div class="field-group full-width">
-                  <label for="monster-name">モンスター名</label>
-                  <input id="monster-name" type="text" placeholder="例: 火竜" maxlength="50" required />
-                </div>
-              </div>
-
-              <div class="passives-block">
-                <div class="passives-header">
-                  <h3>パッシブ一覧</h3>
-                  <button type="button" id="add-passive-row-btn" class="ghost-btn">項目追加</button>
-                </div>
-                <div id="passive-editor" class="passive-editor"></div>
-              </div>
-
-              <div class="form-actions">
-                <button type="submit" class="primary-btn">保存</button>
-                <button type="button" id="cancel-monster-edit" class="secondary-btn">キャンセル</button>
-              </div>
-            </form>
-          </div>
         </section>
       </main>
     </div>
