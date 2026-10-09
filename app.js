@@ -21,9 +21,11 @@ function normalizeMonster(monster) {
   return {
     id: typeof monster.id === 'string' ? monster.id : createId('monster'),
     name: String(monster.name || '未設定').trim() || '未設定',
-    passives: Array.isArray(monster.passives) ? monster.passives
-      .filter((passive) => passive && typeof passive.label === 'string')
-      .map((passive) => ({ label: passive.label.trim() || '項目', value: Number(passive.value) || 0 })) : []
+    passives: Array.isArray(monster.passives)
+      ? monster.passives
+          .filter((passive) => passive && typeof passive.label === 'string')
+          .map((passive) => ({ label: passive.label.trim() || '項目', value: Number(passive.value) || 0 }))
+      : []
   };
 }
 
@@ -44,91 +46,96 @@ function sanitizeParties(data) {
 let monsters = loadMonsters();
 let parties = loadParties();
 
-const tabButtons = document.querySelectorAll('.tab-btn');
-const partyBuilderSection = document.getElementById('party-builder-section');
-const monsterManagementSection = document.getElementById('monster-management-section');
-const partiesContainer = document.getElementById('parties-container');
+const partyRoot = document.getElementById('parties-container');
+const monsterForm = document.getElementById('monster-form');
 const monsterList = document.getElementById('monster-list');
 const passiveEditor = document.getElementById('passive-editor');
-const monsterForm = document.getElementById('monster-form');
-const monsterNameInput = document.getElementById('monster-name');
-const monsterIdInput = document.getElementById('monster-id');
-const addPartyBtn = document.getElementById('add-party-btn');
-const addPassiveBtn = document.getElementById('add-passive-row-btn');
-const pdfExportBtn = document.getElementById('pdf-export-btn');
-const overallTotalEl = document.getElementById('overall-total');
-const newMonsterBtn = document.getElementById('new-monster-btn');
-const cancelMonsterEditBtn = document.getElementById('cancel-monster-edit');
 
-initialize();
+if (partyRoot || monsterForm) {
+  initialize();
+}
 
 function initialize() {
   ensureDefaultParties();
-  bindTabEvents();
   bindEventListeners();
-  renderMonsters();
-  renderParties();
-  renderPassiveEditor();
-}
-
-function bindTabEvents() {
-  tabButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const target = button.dataset.target;
-      tabButtons.forEach((btn) => btn.classList.toggle('active', btn === button));
-      partyBuilderSection.classList.toggle('active-panel', target === 'party-builder-section');
-      partyBuilderSection.classList.toggle('hidden-panel', target !== 'party-builder-section');
-      monsterManagementSection.classList.toggle('active-panel', target === 'monster-management-section');
-      monsterManagementSection.classList.toggle('hidden-panel', target !== 'monster-management-section');
-    });
-  });
+  if (monsterForm) {
+    renderMonsters();
+    renderPassiveEditor();
+  }
+  if (partyRoot) {
+    renderParties();
+  }
 }
 
 function bindEventListeners() {
-  addPartyBtn.addEventListener('click', () => {
-    parties.push(createNewParty());
-    saveParties();
-    renderParties();
-  });
+  const addPartyBtn = document.getElementById('add-party-btn');
+  const addPassiveBtn = document.getElementById('add-passive-row-btn');
+  const pdfExportBtn = document.getElementById('pdf-export-btn');
+  const newMonsterBtn = document.getElementById('new-monster-btn');
+  const cancelMonsterEditBtn = document.getElementById('cancel-monster-edit');
+  const monsterForm = document.getElementById('monster-form');
 
-  addPassiveBtn.addEventListener('click', addPassiveInputToEditor);
-  pdfExportBtn.addEventListener('click', generatePdfFromParties);
-  newMonsterBtn.addEventListener('click', resetMonsterForm);
-  cancelMonsterEditBtn.addEventListener('click', resetMonsterForm);
+  if (addPartyBtn) {
+    addPartyBtn.addEventListener('click', () => {
+      parties.push(createNewParty());
+      saveParties();
+      renderParties();
+    });
+  }
 
-  monsterForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const id = monsterIdInput.value;
-    const name = monsterNameInput.value.trim();
-    const passives = Array.from(passiveEditor.querySelectorAll('.passive-row')).map((row) => {
-      const labelInput = row.querySelector('.passive-label');
-      const valueInput = row.querySelector('.passive-value');
-      const label = labelInput ? labelInput.value.trim() : '';
-      const value = Number(valueInput ? valueInput.value : 0);
-      if (!label || Number.isNaN(value)) return null;
-      return { label, value };
-    }).filter(Boolean);
+  if (addPassiveBtn) {
+    addPassiveBtn.addEventListener('click', addPassiveInputToEditor);
+  }
 
-    if (!name || passives.length === 0) {
-      alert('モンスター名と少なくとも1つのパッシブ値を入力してください。');
-      return;
-    }
+  if (pdfExportBtn) {
+    pdfExportBtn.addEventListener('click', generatePdfFromParties);
+  }
 
-    if (id) {
-      const targetMonster = monsters.find((monster) => monster.id === id);
-      if (targetMonster) {
-        targetMonster.name = name;
-        targetMonster.passives = passives;
+  if (newMonsterBtn) {
+    newMonsterBtn.addEventListener('click', resetMonsterForm);
+  }
+
+  if (cancelMonsterEditBtn) {
+    cancelMonsterEditBtn.addEventListener('click', resetMonsterForm);
+  }
+
+  if (monsterForm) {
+    monsterForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const monsterIdInput = document.getElementById('monster-id');
+      const monsterNameInput = document.getElementById('monster-name');
+      const id = monsterIdInput ? monsterIdInput.value : '';
+      const name = monsterNameInput ? monsterNameInput.value.trim() : '';
+      const passives = Array.from((passiveEditor ? passiveEditor.querySelectorAll('.passive-row') : [])).map((row) => {
+        const labelInput = row.querySelector('.passive-label');
+        const valueInput = row.querySelector('.passive-value');
+        const label = labelInput ? labelInput.value.trim() : '';
+        const value = Number(valueInput ? valueInput.value : 0);
+        if (!label || Number.isNaN(value)) return null;
+        return { label, value };
+      }).filter(Boolean);
+
+      if (!name || passives.length === 0) {
+        alert('モンスター名と少なくとも1つのパッシブ値を入力してください。');
+        return;
       }
-    } else {
-      monsters.push({ id: createId('monster'), name, passives });
-    }
 
-    saveMonsters();
-    renderMonsters();
-    renderParties();
-    resetMonsterForm();
-  });
+      if (id) {
+        const targetMonster = monsters.find((monster) => monster.id === id);
+        if (targetMonster) {
+          targetMonster.name = name;
+          targetMonster.passives = passives;
+        }
+      } else {
+        monsters.push({ id: createId('monster'), name, passives });
+      }
+
+      saveMonsters();
+      renderMonsters();
+      renderParties();
+      resetMonsterForm();
+    });
+  }
 }
 
 function loadMonsters() {
@@ -172,8 +179,13 @@ function ensureDefaultParties() {
   }
 }
 
-function saveMonsters() { localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(monsters)); }
-function saveParties() { localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties)); }
+function saveMonsters() {
+  localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(monsters));
+}
+
+function saveParties() {
+  localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties));
+}
 
 function createNewParty() {
   return { id: createId('party'), slots: Array.from({ length: 6 }, () => '') };
@@ -184,11 +196,15 @@ function createId(prefix) {
 }
 
 function renderParties() {
+  if (!partyRoot) return;
+  const overallTotalEl = document.getElementById('overall-total');
+  if (!overallTotalEl) return;
+
   if (!parties.length) parties = [createNewParty()];
   const overall = parties.reduce((sum, party) => sum + calculatePartyTotal(party), 0);
   overallTotalEl.textContent = overall;
 
-  partiesContainer.innerHTML = parties.map((party, partyIndex) => {
+  partyRoot.innerHTML = parties.map((party, partyIndex) => {
     const partyTotal = calculatePartyTotal(party);
     return `
       <article class="party-card" data-party-id="${party.id}">
@@ -269,6 +285,8 @@ function calculatePartyTotal(party) {
 }
 
 function renderMonsters() {
+  if (!monsterList) return;
+
   if (!monsters.length) {
     monsterList.innerHTML = '<div class="empty-state">登録済みのモンスターがありません。</div>';
     return;
@@ -294,8 +312,10 @@ function renderMonsters() {
       const monsterId = button.dataset.monsterId;
       const monster = monsters.find((item) => item.id === monsterId);
       if (!monster) return;
-      monsterIdInput.value = monster.id;
-      monsterNameInput.value = monster.name;
+      const monsterIdInput = document.getElementById('monster-id');
+      const monsterNameInput = document.getElementById('monster-name');
+      if (monsterIdInput) monsterIdInput.value = monster.id;
+      if (monsterNameInput) monsterNameInput.value = monster.name;
       renderPassiveEditor(monster.passives);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -319,6 +339,7 @@ function renderMonsters() {
 }
 
 function renderPassiveEditor(passives = []) {
+  if (!passiveEditor) return;
   const sourcePassives = passives.length ? passives : [{ label: '', value: 0 }];
   passiveEditor.innerHTML = sourcePassives.map((passive, index) => `
     <div class="passive-row">
@@ -339,6 +360,8 @@ function renderPassiveEditor(passives = []) {
 }
 
 function addPassiveInputToEditor() {
+  if (!passiveEditor) return;
+
   const row = document.createElement('div');
   row.className = 'passive-row';
   row.innerHTML = `
@@ -354,8 +377,10 @@ function addPassiveInputToEditor() {
 }
 
 function resetMonsterForm() {
-  monsterForm.reset();
-  monsterIdInput.value = '';
+  const monsterForm = document.getElementById('monster-form');
+  const monsterIdInput = document.getElementById('monster-id');
+  if (monsterForm) monsterForm.reset();
+  if (monsterIdInput) monsterIdInput.value = '';
   renderPassiveEditor();
 }
 
