@@ -1,63 +1,488 @@
-<!DOCTYPE html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>モンスター管理 | Monbas Passive Calculator</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body data-page="monster-manager">
-    <div class="app-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Monbas Passive Calculator</p>
-          <h1>モンスター管理</h1>
-        </div>
-        <div class="topbar-actions">
-          <a href="index.html" class="secondary-btn inline-link">パーティー画面へ戻る</a>
-        </div>
-      </header>
+:root {
+  --bg-1: #0a1020;
+  --bg-2: #101b2d;
+  --panel: rgba(17, 25, 39, 0.82);
+  --panel-strong: rgba(24, 35, 53, 0.96);
+  --panel-soft: rgba(23, 33, 52, 0.72);
+  --line: rgba(148, 163, 184, 0.2);
+  --line-strong: rgba(148, 163, 184, 0.38);
+  --text: #eef6ff;
+  --muted: #b7c6df;
+  --primary: #6aa9ff;
+  --primary-strong: #8bb8ff;
+  --secondary: #7ef0d6;
+  --accent: #ffbf69;
+  --danger: #ff6b7d;
+  --success: #57d491;
+  --shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
+}
 
-      <main>
-        <section class="panel active-panel">
-          <div class="section-header">
-            <h2>モンスター追加 / 編集</h2>
-          </div>
+* {
+  box-sizing: border-box;
+}
 
-          <div class="monster-form-card">
-            <form id="monster-form">
-              <input type="hidden" id="monster-id" />
+html {
+  scroll-behavior: smooth;
+}
 
-              <div class="field-grid">
-                <div class="field-group full-width">
-                  <label for="monster-name">モンスター名</label>
-                  <input id="monster-name" type="text" placeholder="例: 火竜" maxlength="50" required />
-                </div>
-              </div>
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(106, 169, 255, 0.18), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(126, 240, 214, 0.12), transparent 28%),
+    linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  color: var(--text);
+}
 
-              <div class="passives-block">
-                <div class="passives-header">
-                  <h3>パッシブ一覧</h3>
-                  <button type="button" id="add-passive-row-btn" class="ghost-btn">項目追加</button>
-                </div>
-                <div id="passive-editor" class="passive-editor"></div>
-              </div>
+button,
+input,
+select,
+a {
+  font: inherit;
+}
 
-              <div class="form-actions">
-                <button type="submit" class="primary-btn">保存</button>
-                <button type="button" id="cancel-monster-edit" class="secondary-btn">キャンセル</button>
-              </div>
-            </form>
-          </div>
+button,
+input,
+select {
+  border: 0;
+  outline: none;
+}
 
-          <div class="monster-list-wrap">
-            <h3>登録済みモンスター</h3>
-            <div id="monster-list" class="monster-list"></div>
-          </div>
-        </section>
-      </main>
-    </div>
+button {
+  cursor: pointer;
+}
 
-    <script src="app.js"></script>
-  </body>
-</html>
+img {
+  max-width: 100%;
+}
+
+.app-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 26px 20px 40px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  background: rgba(10, 16, 32, 0.72);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(1.9rem, 2.2vw, 3rem);
+  line-height: 1.1;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.inline-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.primary-btn,
+.secondary-btn,
+.ghost-btn,
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), #4c7df8);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(88, 120, 255, 0.28);
+}
+
+.primary-btn:hover,
+.secondary-btn:hover,
+.ghost-btn:hover,
+.danger-btn:hover {
+  transform: translateY(-1px);
+}
+
+.secondary-btn {
+  background: rgba(106, 169, 255, 0.12);
+  border: 1px solid rgba(106, 169, 255, 0.4);
+  color: var(--text);
+}
+
+.ghost-btn {
+  background: rgba(126, 240, 214, 0.08);
+  border: 1px dashed rgba(126, 240, 214, 0.42);
+  color: var(--secondary);
+}
+
+.danger-btn {
+  background: rgba(255, 107, 125, 0.08);
+  border: 1px solid rgba(255, 107, 125, 0.35);
+  color: #ffd8dd;
+}
+
+main {
+  display: block;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(17, 25, 39, 0.9), rgba(12, 20, 31, 0.82));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.active-panel {
+  display: block;
+}
+
+.hidden-panel {
+  display: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+  font-size: clamp(1.2rem, 1.6vw, 1.8rem);
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(106, 169, 255, 0.14), rgba(126, 240, 214, 0.08));
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+}
+
+.summary-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+#overall-total {
+  font-size: clamp(2rem, 2.2vw, 2.8rem);
+  font-weight: 800;
+}
+
+.parties-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.party-card {
+  background: linear-gradient(180deg, rgba(16, 25, 40, 0.96), rgba(12, 20, 31, 0.92));
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+.party-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.party-header h3 {
+  margin: 0;
+  font-size: 1.06rem;
+}
+
+.party-total {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(106, 169, 255, 0.12);
+  border: 1px solid rgba(106, 169, 255, 0.25);
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  gap: 14px;
+}
+
+.slot-card {
+  background: rgba(17, 25, 39, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.slot-card label {
+  display: block;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 8px;
+}
+
+.slot-card select {
+  width: 100%;
+  background: rgba(10, 16, 32, 0.9);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+
+.monster-detail {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.monster-detail strong {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.96rem;
+}
+
+.passive-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.2);
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.passive-item:last-child {
+  border-bottom: none;
+}
+
+.empty-state {
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 8px 0 2px;
+}
+
+.monster-form-card {
+  background: rgba(16, 24, 37, 0.95);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.field-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.field-group label {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(8, 14, 24, 0.9);
+  color: var(--text);
+  padding: 11px 12px;
+}
+
+.passives-block {
+  margin-top: 22px;
+}
+
+.passives-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.passives-header h3 {
+  margin: 0;
+}
+
+.passive-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.passive-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.2fr) minmax(90px, 0.7fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.remove-passive-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(255, 107, 125, 0.1);
+  color: #ffdfe5;
+  border: 1px solid rgba(255, 107, 125, 0.3);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.monster-list-wrap {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+
+.monster-list {
+  display: grid;
+  gap: 12px;
+}
+
+.monster-card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(17, 25, 39, 0.78);
+  border: 1px solid var(--line);
+}
+
+.monster-card-item h4 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
+.monster-passives {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(106, 169, 255, 0.12);
+  color: var(--primary-strong);
+  border: 1px solid rgba(106, 169, 255, 0.2);
+  font-size: 0.77rem;
+  font-weight: 700;
+}
+
+.monster-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 780px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  .topbar,
+  .section-header,
+  .party-header,
+  .passives-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .topbar-actions,
+  .form-actions,
+  .monster-actions {
+    width: 100%;
+  }
+
+  .topbar-actions > *,
+  .form-actions > *,
+  .monster-actions > * {
+    flex: 1 1 auto;
+  }
+
+  .slot-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .passive-row {
+    grid-template-columns: 1fr;
+  }
+
+  .monster-card-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
