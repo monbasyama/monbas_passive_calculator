@@ -11,6 +11,36 @@ const sampleMonsters = [
   { id: 'monster-moon-cat', name: '月猫', passives: [{ label: '会心', value: 13 }, { label: '攻撃', value: 10 }, { label: '回復', value: 8 }] }
 ];
 
+function isValidMonster(monster) {
+  return monster && typeof monster === 'object' && typeof monster.name === 'string' && Array.isArray(monster.passives) && monster.passives.every((passive) => {
+    return passive && typeof passive.label === 'string' && Number.isFinite(Number(passive.value));
+  });
+}
+
+function normalizeMonster(monster) {
+  return {
+    id: typeof monster.id === 'string' ? monster.id : createId('monster'),
+    name: String(monster.name || '未設定').trim() || '未設定',
+    passives: Array.isArray(monster.passives) ? monster.passives
+      .filter((passive) => passive && typeof passive.label === 'string')
+      .map((passive) => ({ label: passive.label.trim() || '項目', value: Number(passive.value) || 0 })) : []
+  };
+}
+
+function sanitizeMonsters(data) {
+  if (!Array.isArray(data) || data.length === 0) return [...sampleMonsters];
+  const normalized = data.map(normalizeMonster).filter(isValidMonster);
+  return normalized.length ? normalized : [...sampleMonsters];
+}
+
+function sanitizeParties(data) {
+  if (!Array.isArray(data) || data.length === 0) return [createNewParty()];
+  return data.filter((party) => party && Array.isArray(party.slots)).map((party) => ({
+    id: typeof party.id === 'string' ? party.id : createId('party'),
+    slots: Array.from({ length: 6 }, (_, index) => typeof party.slots[index] === 'string' ? party.slots[index] : '')
+  }));
+}
+
 let monsters = loadMonsters();
 let parties = loadParties();
 
@@ -73,8 +103,8 @@ function bindEventListeners() {
     const passives = Array.from(passiveEditor.querySelectorAll('.passive-row')).map((row) => {
       const labelInput = row.querySelector('.passive-label');
       const valueInput = row.querySelector('.passive-value');
-      const label = labelInput.value.trim();
-      const value = Number(valueInput.value);
+      const label = labelInput ? labelInput.value.trim() : '';
+      const value = Number(valueInput ? valueInput.value : 0);
       if (!label || Number.isNaN(value)) return null;
       return { label, value };
     }).filter(Boolean);
@@ -107,10 +137,12 @@ function loadMonsters() {
     localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(sampleMonsters));
     return [...sampleMonsters];
   }
+
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [...sampleMonsters];
+    return sanitizeMonsters(parsed);
   } catch {
+    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(sampleMonsters));
     return [...sampleMonsters];
   }
 }
@@ -122,11 +154,14 @@ function loadParties() {
     localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify([defaultParty]));
     return [defaultParty];
   }
+
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [createNewParty()];
+    return sanitizeParties(parsed);
   } catch {
-    return [createNewParty()];
+    const defaultParty = createNewParty();
+    localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify([defaultParty]));
+    return [defaultParty];
   }
 }
 
@@ -329,7 +364,7 @@ function escapeHtml(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/\"/g, '&quot;')
+    .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
 
@@ -338,23 +373,32 @@ function generatePdfFromParties() {
     alert('PDF生成ライブラリの読み込みに失敗しました。');
     return;
   }
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   let y = 48;
+
   doc.setFontSize(18);
   doc.text('Monbas Passive Calculator', 40, y);
   y += 28;
+
   doc.setFontSize(12);
   doc.text('全パーティー一覧', 40, y);
   y += 22;
 
   parties.forEach((party, partyIndex) => {
     const partyTotal = calculatePartyTotal(party);
-    if (y > 720) { doc.addPage(); y = 48; }
+
+    if (y > 720) {
+      doc.addPage();
+      y = 48;
+    }
+
     doc.setFontSize(14);
     doc.setTextColor(34, 87, 213);
     doc.text(`パーティー ${partyIndex + 1}`, 40, y);
     y += 18;
+
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(11);
     doc.text(`合計: ${partyTotal}`, 40, y);
@@ -363,17 +407,28 @@ function generatePdfFromParties() {
     party.slots.forEach((slotId, slotIndex) => {
       const slotLabel = slotIndex < 5 ? `モンスター ${slotIndex + 1}` : '助っ人';
       const monster = monsters.find((item) => item.id === slotId);
-      if (y > 760) { doc.addPage(); y = 48; }
+
+      if (y > 760) {
+        doc.addPage();
+        y = 48;
+      }
+
       if (monster) {
-        doc.text(`${slotLabel}: ${monster.name}`, 52, y); y += 14;
+        doc.text(`${slotLabel}: ${monster.name}`, 52, y);
+        y += 14;
+
         monster.passives.forEach((passive) => {
-          doc.text(`- ${passive.label}: ${passive.value}`, 70, y); y += 12;
+          doc.text(`- ${passive.label}: ${passive.value}`, 70, y);
+          y += 12;
         });
       } else {
-        doc.text(`${slotLabel}: 未選択`, 52, y); y += 12;
+        doc.text(`${slotLabel}: 未選択`, 52, y);
+        y += 12;
       }
+
       y += 8;
     });
+
     y += 10;
   });
 
