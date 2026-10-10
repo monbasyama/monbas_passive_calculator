@@ -779,16 +779,3 @@ select {
     align-items: flex-start;
   }
 }
-
-.monster-page-preview {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1050px;
-  height: 1050px;
-  border: 0;
-  background: #fff;
-  transform: scale(0.08);
-  transform-origin: top left;
-  pointer-events: none;
-}
