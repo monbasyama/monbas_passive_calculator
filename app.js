@@ -158,13 +158,9 @@ function calculatePartyTotal(party) {
 
 function searchMonsters(query) {
   const lowerQuery = query.toLowerCase().trim();
-  
-  if (!lowerQuery) {
-    return [];
-  }
 
   return monsters.filter((monster) => 
-    monster.name.toLowerCase().includes(lowerQuery)
+    !lowerQuery || monster.name.toLowerCase().includes(lowerQuery)
   );
 }
 
@@ -174,11 +170,6 @@ function renderMonsterSearchResults() {
 
   const query = ui.monsterSearchInput.value;
   const results = searchMonsters(query);
-
-  if (!query) {
-    ui.monsterSearchResults.innerHTML = '<div class="empty-state">検索キーワードを入力してください</div>';
-    return;
-  }
 
   if (results.length === 0) {
     ui.monsterSearchResults.innerHTML = '<div class="empty-state">検索結果がありません</div>';
