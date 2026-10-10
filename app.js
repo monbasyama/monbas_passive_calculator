@@ -88,7 +88,11 @@ function loadMonsters() {
       const existingCustomMonsters = monstersFromStorage.filter((monster) =>
         !LEGACY_SAMPLE_IDS.has(monster.id) && !seedNames.has(monster.name)
       );
-      const migratedMonsters = [...MONSTER_DATA, ...existingCustomMonsters];
+      const storedWikiUrls = new Map(monstersFromStorage.map((monster) => [monster.name, monster.wikiUrl]));
+      const migratedMonsters = [
+        ...MONSTER_DATA.map((monster) => ({ ...monster, wikiUrl: storedWikiUrls.get(monster.name) || monster.wikiUrl || '' })),
+        ...existingCustomMonsters
+      ];
       localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(migratedMonsters));
       localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
       return migratedMonsters;
@@ -440,12 +444,16 @@ function renderParties() {
 
 function renderMonsterImage(monster) {
   const wikiUrl = sanitizeWikiUrl(monster.wikiUrl);
-  return `
+  const isImageUrl = wikiUrl && /\.(png|jpe?g|gif|webp|svg|avif)(\?.*)?$/i.test(new URL(wikiUrl).pathname + new URL(wikiUrl).search);
+  const frame = `
     <div class="monster-image-frame" aria-label="${escapeHtml(monster.name)}の画像">
-      <span class="monster-image-placeholder">NOIMAGE</span>
-      ${wikiUrl ? `<img class="monster-image" src="${escapeHtml(wikiUrl)}" alt="${escapeHtml(monster.name)}" />` : ''}
+      <span class="monster-image-placeholder">${wikiUrl && !isImageUrl ? 'Wiki' : 'NOIMAGE'}</span>
+      ${isImageUrl ? `<img class="monster-image" src="${escapeHtml(wikiUrl)}" alt="${escapeHtml(monster.name)}" />` : ''}
     </div>
   `;
+  return wikiUrl && !isImageUrl
+    ? `<a class="monster-wiki-link" href="${escapeHtml(wikiUrl)}" target="_blank" rel="noopener noreferrer">${frame}</a>`
+    : frame;
 }
 
 function attachMonsterImageHandlers(root) {
