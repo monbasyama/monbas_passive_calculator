@@ -187,6 +187,8 @@ const MONSTER_DATA = `
     agility: Number(agility),
     hp: Number(hp),
     sp: Number(sp),
-    crt: Number(crt)
+    crt: Number(crt),
+    wikiUrl: '',
+    imageUrl: ''
   };
 });

@@ -14,7 +14,7 @@ const PASSIVE_STATS = [
   { key: 'sp', label: 'SP', shortLabel: 'SP' },
   { key: 'crt', label: 'Crt', shortLabel: 'Cr' }
 ];
-const MONSTER_DATA_VERSION = '2026-10-roster';
+const MONSTER_DATA_VERSION = '2026-10-monster-urls';
 const LEGACY_SAMPLE_IDS = new Set([
   'monster-fire-dragon',
   'monster-ice-wolf',
@@ -54,7 +54,8 @@ function sanitizeMonsters(data) {
         hp: Number(monster.hp) || 0,
         sp: Number(monster.sp) || 0,
         crt: Number(monster.crt) || 0,
-        wikiUrl: sanitizeWikiUrl(monster.wikiUrl)
+        wikiUrl: sanitizeUrl(monster.wikiUrl),
+        imageUrl: sanitizeUrl(monster.imageUrl)
       };
     })
     .filter((monster) => monster && typeof monster.name === 'string');
@@ -88,9 +89,15 @@ function loadMonsters() {
       const existingCustomMonsters = monstersFromStorage.filter((monster) =>
         !LEGACY_SAMPLE_IDS.has(monster.id) && !seedNames.has(monster.name)
       );
-      const storedWikiUrls = new Map(monstersFromStorage.map((monster) => [monster.name, monster.wikiUrl]));
+      const storedUrls = new Map(monstersFromStorage.map((monster) => [monster.name, {
+        wikiUrl: monster.wikiUrl,
+        imageUrl: monster.imageUrl
+      }]));
       const migratedMonsters = [
-        ...MONSTER_DATA.map((monster) => ({ ...monster, wikiUrl: storedWikiUrls.get(monster.name) || monster.wikiUrl || '' })),
+        ...MONSTER_DATA.map((monster) => ({
+          ...monster,
+          ...storedUrls.get(monster.name)
+        })),
         ...existingCustomMonsters
       ];
       localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(migratedMonsters));
@@ -131,7 +138,7 @@ function saveParties() {
   localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties));
 }
 
-function sanitizeWikiUrl(value) {
+function sanitizeUrl(value) {
   if (typeof value !== 'string' || !value.trim()) return '';
 
   try {
@@ -162,7 +169,8 @@ function getUi() {
     monsterHpInput: document.getElementById('monster-hp'),
     monsterSpInput: document.getElementById('monster-sp'),
     monsterCrtInput: document.getElementById('monster-crt'),
-    monsterWikiUrlInput: document.getElementById('monster-wiki-url')
+    monsterWikiUrlInput: document.getElementById('monster-wiki-url'),
+    monsterImageUrlInput: document.getElementById('monster-image-url')
   };
 }
 
@@ -286,6 +294,7 @@ function renderMonsterSearchResults() {
       if (ui2.monsterSpInput) ui2.monsterSpInput.value = monster.sp;
       if (ui2.monsterCrtInput) ui2.monsterCrtInput.value = monster.crt;
       if (ui2.monsterWikiUrlInput) ui2.monsterWikiUrlInput.value = monster.wikiUrl || '';
+      if (ui2.monsterImageUrlInput) ui2.monsterImageUrlInput.value = monster.imageUrl || '';
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -443,13 +452,12 @@ function renderParties() {
 }
 
 function renderMonsterImage(monster) {
-  const wikiUrl = sanitizeWikiUrl(monster.wikiUrl);
-  const isImageUrl = wikiUrl && /\.(png|jpe?g|gif|webp|svg|avif)(\?.*)?$/i.test(new URL(wikiUrl).pathname + new URL(wikiUrl).search);
+  const wikiUrl = sanitizeUrl(monster.wikiUrl);
+  const imageUrl = sanitizeUrl(monster.imageUrl);
   const frame = `
     <div class="monster-image-frame" aria-label="${escapeHtml(monster.name)}の画像">
-      <span class="monster-image-placeholder">${wikiUrl && !isImageUrl ? 'Wiki' : 'NOIMAGE'}</span>
-      ${isImageUrl ? `<img class="monster-image" src="${escapeHtml(wikiUrl)}" alt="${escapeHtml(monster.name)}" />` : ''}
-      ${wikiUrl && !isImageUrl ? `<iframe class="monster-page-preview" src="${escapeHtml(wikiUrl)}" title="${escapeHtml(monster.name)}のプレビュー" loading="lazy" tabindex="-1" sandbox="" referrerpolicy="no-referrer"></iframe>` : ''}
+      <span class="monster-image-placeholder">${imageUrl ? '' : 'NOIMAGE'}</span>
+      ${imageUrl ? `<img class="monster-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(monster.name)}" />` : ''}
     </div>
   `;
   return wikiUrl
@@ -677,7 +685,8 @@ function initializeMonsterPage() {
       const hp = Number(ui.monsterHpInput ? ui.monsterHpInput.value : 0);
       const sp = Number(ui.monsterSpInput ? ui.monsterSpInput.value : 0);
       const crt = Number(ui.monsterCrtInput ? ui.monsterCrtInput.value : 0);
-      const wikiUrl = sanitizeWikiUrl(ui.monsterWikiUrlInput ? ui.monsterWikiUrlInput.value : '');
+      const wikiUrl = sanitizeUrl(ui.monsterWikiUrlInput ? ui.monsterWikiUrlInput.value : '');
+      const imageUrl = sanitizeUrl(ui.monsterImageUrlInput ? ui.monsterImageUrlInput.value : '');
 
       if (!name) {
         alert('モンスター名を入力してください。');
@@ -708,6 +717,7 @@ function initializeMonsterPage() {
           targetMonster.sp = sp;
           targetMonster.crt = crt;
           targetMonster.wikiUrl = wikiUrl;
+          targetMonster.imageUrl = imageUrl;
         }
       } else {
         monsters.push({
@@ -722,7 +732,8 @@ function initializeMonsterPage() {
           hp,
           sp,
           crt,
-          wikiUrl
+          wikiUrl,
+          imageUrl
         });
       }
 
