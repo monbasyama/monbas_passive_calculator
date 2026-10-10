@@ -7,12 +7,12 @@ const STORAGE_KEYS = {
 const RACE_OPTIONS = ['魔神', '神族', '異端', '魔族', '精霊', '鬼族', '魔獣', '聖獣', '飛天', '聖人'];
 const ELEMENT_OPTIONS = ['闇', '火', '水', '風', '雷', '無', '光'];
 const PASSIVE_STATS = [
-  { key: 'attack', label: '攻撃力' },
-  { key: 'defense', label: '防御力' },
-  { key: 'agility', label: '素早さ' },
-  { key: 'hp', label: 'HP' },
-  { key: 'sp', label: 'SP' },
-  { key: 'crt', label: 'Crt' }
+  { key: 'attack', label: '攻撃力', shortLabel: '攻' },
+  { key: 'defense', label: '防御力', shortLabel: '防' },
+  { key: 'agility', label: '素早さ', shortLabel: '早' },
+  { key: 'hp', label: 'HP', shortLabel: 'HP' },
+  { key: 'sp', label: 'SP', shortLabel: 'SP' },
+  { key: 'crt', label: 'Crt', shortLabel: 'Cr' }
 ];
 const MONSTER_DATA_VERSION = '2026-10-roster';
 const LEGACY_SAMPLE_IDS = new Set([
@@ -343,15 +343,18 @@ function renderParties() {
 
                 ${selectedMonster ? `
                   <div class="monster-detail">
-                    <strong>${escapeHtml(selectedMonster.name)}</strong>
-                    <div class="monster-stats">
-                      <span>攻撃: ${selectedMonster.attack}</span>
-                      <span>防御: ${selectedMonster.defense}</span>
-                      <span>素早さ: ${selectedMonster.agility}</span>
-                      <span>HP: ${selectedMonster.hp}</span>
-                      <span>SP: ${selectedMonster.sp}</span>
-                      <span>Crt: ${selectedMonster.crt}</span>
+                    <div class="monster-detail-tags">
+                      <span class="tag">種族: ${escapeHtml(selectedMonster.race || '未設定')}</span>
+                      <span class="tag">属性: ${escapeHtml(selectedMonster.element || '未設定')}</span>
                     </div>
+                    <table class="monster-passive-table">
+                      <thead>
+                        <tr>${PASSIVE_STATS.map(({ shortLabel }) => `<th scope="col">${shortLabel}</th>`).join('')}</tr>
+                      </thead>
+                      <tbody>
+                        <tr>${PASSIVE_STATS.map(({ key }) => `<td>${Number(selectedMonster[key]) || 0}</td>`).join('')}</tr>
+                      </tbody>
+                    </table>
                   </div>
                 ` : '<div class="empty-state">未選択</div>'}
               </div>
