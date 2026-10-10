@@ -576,6 +576,93 @@ select {
   flex-wrap: wrap;
 }
 
+.party-passive-summary {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: rgba(10, 16, 32, 0.55);
+}
+
+.party-passive-summary h4 {
+  margin: 0 0 6px;
+  color: var(--primary-strong);
+}
+
+.passive-summary-hint {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.passive-summary-table-wrap {
+  overflow-x: auto;
+}
+
+.passive-summary-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.passive-summary-table th,
+.passive-summary-table td {
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.passive-summary-table thead th {
+  background: rgba(106, 169, 255, 0.12);
+  color: var(--primary-strong);
+  white-space: nowrap;
+}
+
+.passive-summary-table tbody th {
+  min-width: 140px;
+  font-weight: 400;
+}
+
+.passive-summary-table tbody td:nth-child(2) {
+  min-width: 240px;
+}
+
+.summary-slot-label,
+.passive-summary-table tbody td:nth-child(2) > span {
+  display: block;
+}
+
+.summary-slot-label,
+.summary-passive-target,
+.summary-passive-sources {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.passive-summary-table tbody th strong {
+  display: block;
+  margin-top: 3px;
+}
+
+.passive-value-equation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 100px;
+  white-space: nowrap;
+}
+
+.passive-value-bonus {
+  color: var(--secondary);
+}
+
+.passive-value-equation strong {
+  color: var(--text);
+}
+
 .pdf-print-content {
   display: none;
 }
