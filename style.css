@@ -722,12 +722,17 @@ select {
 }
 
 @media print {
+  body {
+    background: #fff !important;
+  }
+
   body > :not(.pdf-print-content) {
     display: none !important;
   }
 
   body > .pdf-print-content {
     display: block !important;
+    background: #fff !important;
   }
 }
 
