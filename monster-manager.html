@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>モンスター管理 | Monbas Passive Calculator</title>
+    <title>モンスター管理 | ちょいと召喚モンスターバスケット</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body data-page="monster-manager">
     <div class="app-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">Monbas Passive Calculator</p>
+          <p class="eyebrow">ちょいと召喚モンスターバスケット</p>
           <h1>モンスター管理</h1>
         </div>
         <div class="topbar-actions">
@@ -29,18 +29,105 @@
               <input type="hidden" id="monster-id" />
 
               <div class="field-grid">
-                <div class="field-group full-width">
+                <div class="field-group">
                   <label for="monster-name">モンスター名</label>
                   <input id="monster-name" type="text" placeholder="例: 火竜" maxlength="50" required />
                 </div>
-              </div>
 
-              <div class="passives-block">
-                <div class="passives-header">
-                  <h3>パッシブ一覧</h3>
-                  <button type="button" id="add-passive-row-btn" class="ghost-btn">項目追加</button>
+                <div class="field-group">
+                  <label for="monster-race">種族</label>
+                  <select id="monster-race" required>
+                    <option value="">選択してください</option>
+                    <option value="魔神">魔神</option>
+                    <option value="神族">神族</option>
+                    <option value="異端">異端</option>
+                    <option value="魔族">魔族</option>
+                    <option value="精霊">精霊</option>
+                    <option value="鬼族">鬼族</option>
+                    <option value="魔獣">魔獣</option>
+                    <option value="聖獣">聖獣</option>
+                    <option value="飛天">飛天</option>
+                    <option value="聖人">聖人</option>
+                  </select>
                 </div>
-                <div id="passive-editor" class="passive-editor"></div>
+
+                <div class="field-group">
+                  <label for="monster-element">属性</label>
+                  <select id="monster-element" required>
+                    <option value="">選択してください</option>
+                    <option value="闇">闇</option>
+                    <option value="火">火</option>
+                    <option value="水">水</option>
+                    <option value="風">風</option>
+                    <option value="雷">雷</option>
+                    <option value="無">無</option>
+                    <option value="光">光</option>
+                  </select>
+                </div>
+
+                <div class="field-group full-width">
+                  <label>パッシブ対象（選択なしも可）</label>
+                  <div class="checkbox-group">
+                    <div class="checkbox-section">
+                      <h4>種族</h4>
+                      <div class="checkbox-list">
+                        <label><input type="checkbox" name="passive-race" value="魔神"> 魔神</label>
+                        <label><input type="checkbox" name="passive-race" value="神族"> 神族</label>
+                        <label><input type="checkbox" name="passive-race" value="異端"> 異端</label>
+                        <label><input type="checkbox" name="passive-race" value="魔族"> 魔族</label>
+                        <label><input type="checkbox" name="passive-race" value="精霊"> 精霊</label>
+                        <label><input type="checkbox" name="passive-race" value="鬼族"> 鬼族</label>
+                        <label><input type="checkbox" name="passive-race" value="魔獣"> 魔獣</label>
+                        <label><input type="checkbox" name="passive-race" value="聖獣"> 聖獣</label>
+                        <label><input type="checkbox" name="passive-race" value="飛天"> 飛天</label>
+                        <label><input type="checkbox" name="passive-race" value="聖人"> 聖人</label>
+                      </div>
+                    </div>
+
+                    <div class="checkbox-section">
+                      <h4>属性</h4>
+                      <div class="checkbox-list">
+                        <label><input type="checkbox" name="passive-element" value="闇"> 闇</label>
+                        <label><input type="checkbox" name="passive-element" value="火"> 火</label>
+                        <label><input type="checkbox" name="passive-element" value="水"> 水</label>
+                        <label><input type="checkbox" name="passive-element" value="風"> 風</label>
+                        <label><input type="checkbox" name="passive-element" value="雷"> 雷</label>
+                        <label><input type="checkbox" name="passive-element" value="無"> 無</label>
+                        <label><input type="checkbox" name="passive-element" value="光"> 光</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-attack">攻撃力</label>
+                  <input id="monster-attack" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-defense">防御力</label>
+                  <input id="monster-defense" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-agility">素早さ</label>
+                  <input id="monster-agility" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-hp">HP</label>
+                  <input id="monster-hp" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-sp">SP</label>
+                  <input id="monster-sp" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-crt">Crt</label>
+                  <input id="monster-crt" type="number" placeholder="0" value="0" />
+                </div>
               </div>
 
               <div class="form-actions">
@@ -50,14 +137,18 @@
             </form>
           </div>
 
-          <div class="monster-list-wrap">
-            <h3>登録済みモンスター</h3>
-            <div id="monster-list" class="monster-list"></div>
+          <div class="monster-search-wrap">
+            <h2>モンスター検索</h2>
+            <div class="search-box">
+              <input type="text" id="monster-search-input" placeholder="モンスター名で検索..." maxlength="50" />
+            </div>
+            <div id="monster-search-results" class="monster-list"></div>
           </div>
         </section>
       </main>
     </div>
 
+    <script src="monster.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
