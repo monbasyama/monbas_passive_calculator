@@ -3,12 +3,15 @@ const STORAGE_KEYS = {
   parties: 'monbas_parties_v1'
 };
 
+const RACE_OPTIONS = ['魔神', '神族', '異端', '魔族', '精霊', '鬼族', '魔獣', '聖獣', '飛天', '聖人'];
+const ELEMENT_OPTIONS = ['闇', '火', '水', '風', '雷', '無', '光'];
+
 const sampleMonsters = [
-  { id: 'monster-fire-dragon', name: '火竜', race: '龍族', element: '火', passiveTarget: '火属性', attack: 18, agility: 12, hp: 15, sp: 10, crt: 8 },
-  { id: 'monster-ice-wolf', name: '氷狼', race: '獣族', element: '水', passiveTarget: '水属性', attack: 14, agility: 16, hp: 12, sp: 9, crt: 11 },
-  { id: 'monster-sky-bird', name: '空鳥', race: '鳥族', element: '風', passiveTarget: '風属性', attack: 10, agility: 20, hp: 10, sp: 14, crt: 9 },
-  { id: 'monster-stone-giant', name: '岩巨人', race: '石族', element: '土', passiveTarget: '土属性', attack: 16, agility: 8, hp: 22, sp: 12, crt: 5 },
-  { id: 'monster-moon-cat', name: '月猫', race: '妖族', element: '光', passiveTarget: '光属性', attack: 12, agility: 14, hp: 11, sp: 16, crt: 13 }
+  { id: 'monster-fire-dragon', name: '火竜', race: '魔獣', element: '火', passiveTarget: ['魔獣', '火'], attack: 18, agility: 12, hp: 15, sp: 10, crt: 8 },
+  { id: 'monster-ice-wolf', name: '氷狼', race: '魔獣', element: '水', passiveTarget: ['魔獣', '水'], attack: 14, agility: 16, hp: 12, sp: 9, crt: 11 },
+  { id: 'monster-sky-bird', name: '空鳥', race: '飛天', element: '風', passiveTarget: ['飛天', '風'], attack: 10, agility: 20, hp: 10, sp: 14, crt: 9 },
+  { id: 'monster-stone-giant', name: '岩巨人', race: '鬼族', element: '無', passiveTarget: ['鬼族', '無'], attack: 16, agility: 8, hp: 22, sp: 12, crt: 5 },
+  { id: 'monster-moon-cat', name: '月猫', race: '精霊', element: '光', passiveTarget: ['精霊', '光'], attack: 12, agility: 14, hp: 11, sp: 16, crt: 13 }
 ];
 
 let monsters = [];
@@ -29,18 +32,21 @@ function sanitizeMonsters(data) {
   if (!Array.isArray(data) || data.length === 0) return [...sampleMonsters];
 
   const normalized = data
-    .map((monster) => ({
-      id: typeof monster.id === 'string' ? monster.id : createId('monster'),
-      name: String(monster.name || '未設定').trim() || '未設定',
-      race: String(monster.race || '').trim(),
-      element: String(monster.element || '').trim(),
-      passiveTarget: String(monster.passiveTarget || '').trim(),
-      attack: Number(monster.attack) || 0,
-      agility: Number(monster.agility) || 0,
-      hp: Number(monster.hp) || 0,
-      sp: Number(monster.sp) || 0,
-      crt: Number(monster.crt) || 0
-    }))
+    .map((monster) => {
+      const passiveTarget = Array.isArray(monster.passiveTarget) ? monster.passiveTarget : [];
+      return {
+        id: typeof monster.id === 'string' ? monster.id : createId('monster'),
+        name: String(monster.name || '未設定').trim() || '未設定',
+        race: String(monster.race || '').trim(),
+        element: String(monster.element || '').trim(),
+        passiveTarget: passiveTarget.filter(t => typeof t === 'string'),
+        attack: Number(monster.attack) || 0,
+        agility: Number(monster.agility) || 0,
+        hp: Number(monster.hp) || 0,
+        sp: Number(monster.sp) || 0,
+        crt: Number(monster.crt) || 0
+      };
+    })
     .filter((monster) => monster && typeof monster.name === 'string');
 
   return normalized.length ? normalized : [...sampleMonsters];
@@ -113,7 +119,6 @@ function getUi() {
     monsterNameInput: document.getElementById('monster-name'),
     monsterRaceInput: document.getElementById('monster-race'),
     monsterElementInput: document.getElementById('monster-element'),
-    monsterPassiveTargetInput: document.getElementById('monster-passive-target'),
     monsterAttackInput: document.getElementById('monster-attack'),
     monsterAgilityInput: document.getElementById('monster-agility'),
     monsterHpInput: document.getElementById('monster-hp'),
@@ -171,7 +176,7 @@ function renderMonsterSearchResults() {
         <div class="monster-details">
           <span class="tag">種族: ${escapeHtml(monster.race)}</span>
           <span class="tag">属性: ${escapeHtml(monster.element)}</span>
-          <span class="tag">対象: ${escapeHtml(monster.passiveTarget)}</span>
+          <span class="tag">対象: ${escapeHtml(monster.passiveTarget.join(', '))}</span>
         </div>
         <div class="monster-stats">
           <span>攻撃: ${monster.attack}</span>
@@ -201,7 +206,18 @@ function renderMonsterSearchResults() {
       if (ui2.monsterNameInput) ui2.monsterNameInput.value = monster.name;
       if (ui2.monsterRaceInput) ui2.monsterRaceInput.value = monster.race;
       if (ui2.monsterElementInput) ui2.monsterElementInput.value = monster.element;
-      if (ui2.monsterPassiveTargetInput) ui2.monsterPassiveTargetInput.value = monster.passiveTarget;
+      
+      // チェックボックスをリセット
+      document.querySelectorAll('input[name="passive-race"], input[name="passive-element"]').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+
+      // パッシブ対象のチェックボックスをチェック
+      monster.passiveTarget.forEach(target => {
+        const checkbox = document.querySelector(`input[name="passive-race"][value="${target}"], input[name="passive-element"][value="${target}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
+
       if (ui2.monsterAttackInput) ui2.monsterAttackInput.value = monster.attack;
       if (ui2.monsterAgilityInput) ui2.monsterAgilityInput.value = monster.agility;
       if (ui2.monsterHpInput) ui2.monsterHpInput.value = monster.hp;
@@ -374,6 +390,12 @@ function resetMonsterForm() {
   if (ui.monsterForm) ui.monsterForm.reset();
   if (ui.monsterIdInput) ui.monsterIdInput.value = '';
   if (ui.monsterSearchInput) ui.monsterSearchInput.value = '';
+  
+  // チェックボックスをリセット
+  document.querySelectorAll('input[name="passive-race"], input[name="passive-element"]').forEach(checkbox => {
+    checkbox.checked = false;
+  });
+  
   renderMonsterSearchResults();
 }
 
@@ -496,7 +518,13 @@ function initializeMonsterPage() {
       const name = ui.monsterNameInput ? ui.monsterNameInput.value.trim() : '';
       const race = ui.monsterRaceInput ? ui.monsterRaceInput.value.trim() : '';
       const element = ui.monsterElementInput ? ui.monsterElementInput.value.trim() : '';
-      const passiveTarget = ui.monsterPassiveTargetInput ? ui.monsterPassiveTargetInput.value.trim() : '';
+      
+      // パッシブ対象を収集
+      const passiveTarget = [];
+      document.querySelectorAll('input[name="passive-race"]:checked, input[name="passive-element"]:checked').forEach(checkbox => {
+        passiveTarget.push(checkbox.value);
+      });
+      
       const attack = Number(ui.monsterAttackInput ? ui.monsterAttackInput.value : 0);
       const agility = Number(ui.monsterAgilityInput ? ui.monsterAgilityInput.value : 0);
       const hp = Number(ui.monsterHpInput ? ui.monsterHpInput.value : 0);
@@ -505,6 +533,21 @@ function initializeMonsterPage() {
 
       if (!name) {
         alert('モンスター名を入力してください。');
+        return;
+      }
+
+      if (!race) {
+        alert('種族を選択してください。');
+        return;
+      }
+
+      if (!element) {
+        alert('属性を選択してください。');
+        return;
+      }
+
+      if (passiveTarget.length === 0) {
+        alert('パッシブ対象を最低1つ選択してください。');
         return;
       }
 
