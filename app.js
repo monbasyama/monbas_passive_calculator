@@ -577,6 +577,8 @@ function generatePdfFromParties() {
       .pdf-summary-table { width: 100%; border-collapse: collapse; font-size: 9px; }
       .pdf-summary-table th, .pdf-summary-table td { padding: 4px; border: 1px solid #777; text-align: left; vertical-align: top; }
       .pdf-summary-table thead { background: #eee; }
+      .pdf-summary-table .monster-image-cell { width: 32px; padding: 2px; }
+      .pdf-summary-table .monster-image { display: block; width: 32px; height: 32px; object-fit: contain; }
       .pdf-summary-table .passive-value-equation { display: flex; justify-content: space-between; gap: 3px; white-space: nowrap; }
     </style>
   `;
@@ -592,10 +594,10 @@ function generatePdfFromParties() {
 
     html += `
       <section class="pdf-party">
-        <h2>パーティー ${partyIndex + 1}：選択モンスターのパッシブ反映一覧</h2>
+        <h2>パーティー ${partyIndex + 1}</h2>
         <table class="pdf-summary-table">
           <thead><tr>
-            <th>モンスター</th><th>種族</th><th>属性</th><th>パッシブ対象</th>
+            <th></th><th>モンスター</th><th>種族</th><th>属性</th><th>パッシブ対象</th>
             ${PASSIVE_STATS.map(({ label }) => `<th>${label}</th>`).join('')}
           </tr></thead>
           <tbody>
@@ -605,6 +607,7 @@ function generatePdfFromParties() {
       const bonuses = getPassiveBonuses(party, slotIndex, monster);
       html += `
         <tr>
+          <td class="monster-image-cell">${monster.imageUrl ? `<img class="monster-image" src="${escapeHtml(monster.imageUrl)}" alt="">` : ''}</td>
           <th scope="row">${escapeHtml(monster.name)}</th>
           <td>${escapeHtml(monster.race || '未設定')}</td>
           <td>${escapeHtml(monster.element || '未設定')}</td>
