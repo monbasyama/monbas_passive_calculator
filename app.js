@@ -167,6 +167,11 @@ function renderMonsterSearchResults() {
   if (!ui.monsterSearchInput || !ui.monsterSearchResults) return;
 
   const query = ui.monsterSearchInput.value;
+  if (!query.trim()) {
+    ui.monsterSearchResults.innerHTML = '';
+    return;
+  }
+
   const results = searchMonsters(query);
 
   if (results.length === 0) {
