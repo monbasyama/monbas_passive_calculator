@@ -102,7 +102,6 @@ function saveParties() {
 function getUi() {
   return {
     partyRoot: document.getElementById('parties-container'),
-    overallTotal: document.getElementById('overall-total'),
     monsterForm: document.getElementById('monster-form'),
     monsterSearchInput: document.getElementById('monster-search-input'),
     monsterSearchResults: document.getElementById('monster-search-results'),
@@ -235,12 +234,9 @@ function renderMonsterSearchResults() {
 
 function renderParties() {
   const ui = getUi();
-  if (!ui.partyRoot || !ui.overallTotal) return;
+  if (!ui.partyRoot) return;
 
   if (!parties.length) parties = [createNewParty()];
-
-  const overall = parties.reduce((sum, party) => sum + calculatePartyTotal(party), 0);
-  ui.overallTotal.textContent = overall;
 
   ui.partyRoot.innerHTML = parties.map((party, partyIndex) => {
     const partyTotal = calculatePartyTotal(party);
