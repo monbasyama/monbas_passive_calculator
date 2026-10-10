@@ -350,15 +350,6 @@ main {
   padding: 8px 0 2px;
 }
 
-#monster-data-status {
-  min-height: 1.5em;
-  color: var(--muted);
-}
-
-#monster-data-status.error-message {
-  color: #ff8585;
-}
-
 .monster-form-card {
   background: rgba(16, 24, 37, 0.95);
   border: 1px solid var(--line);
