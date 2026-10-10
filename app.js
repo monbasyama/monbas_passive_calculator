@@ -434,7 +434,7 @@ function renderParties() {
     `;
   }).join('');
 
-  attachMonsterImageHandlers(partiesContainer);
+  attachMonsterImageHandlers(ui.partyRoot);
   attachPartyEvents();
 }
 
