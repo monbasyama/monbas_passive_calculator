@@ -339,7 +339,10 @@ function renderParties() {
       <article class="party-card" data-party-id="${party.id}">
         <div class="party-header">
           <h3>パーティー ${partyIndex + 1}</h3>
-          <button class="danger-btn delete-party-btn" type="button" data-party-id="${party.id}">削除</button>
+          <div class="party-actions">
+            <button class="danger-btn delete-party-btn" type="button" data-party-id="${party.id}">削除</button>
+            <button class="secondary-btn duplicate-party-btn" type="button" data-party-id="${party.id}">複製</button>
+          </div>
         </div>
 
         <div class="party-total">合計: ${partyTotal}</div>
@@ -485,6 +488,20 @@ function attachPartyEvents() {
       }
 
       parties = parties.filter((party) => party.id !== partyId);
+      saveParties();
+      renderParties();
+    });
+  });
+
+  document.querySelectorAll('.duplicate-party-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const sourceParty = parties.find((party) => party.id === button.dataset.partyId);
+      if (!sourceParty) return;
+
+      parties.push({
+        id: createId('party'),
+        slots: [...sourceParty.slots]
+      });
       saveParties();
       renderParties();
     });
