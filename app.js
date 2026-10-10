@@ -429,6 +429,7 @@ function escapeHtml(value) {
 
 function generatePdfFromParties() {
   const printable = document.createElement('div');
+  printable.className = 'pdf-print-content';
   printable.style.padding = '20px';
   printable.style.fontFamily = '"Segoe UI", "Yu Gothic", sans-serif';
   printable.style.color = '#000';
@@ -482,14 +483,9 @@ function generatePdfFromParties() {
   });
 
   printable.innerHTML = html;
-
   document.body.appendChild(printable);
-
+  window.addEventListener('afterprint', () => printable.remove(), { once: true });
   window.print();
-
-  setTimeout(() => {
-    printable.remove();
-  }, 500);
 }
 
 function initializePartyPage() {

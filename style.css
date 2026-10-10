@@ -576,6 +576,20 @@ select {
   flex-wrap: wrap;
 }
 
+.pdf-print-content {
+  display: none;
+}
+
+@media print {
+  body > :not(.pdf-print-content) {
+    display: none !important;
+  }
+
+  body > .pdf-print-content {
+    display: block !important;
+  }
+}
+
 @media (max-width: 780px) {
   .app-shell {
     padding: 16px;
