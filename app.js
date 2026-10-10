@@ -449,9 +449,10 @@ function renderMonsterImage(monster) {
     <div class="monster-image-frame" aria-label="${escapeHtml(monster.name)}の画像">
       <span class="monster-image-placeholder">${wikiUrl && !isImageUrl ? 'Wiki' : 'NOIMAGE'}</span>
       ${isImageUrl ? `<img class="monster-image" src="${escapeHtml(wikiUrl)}" alt="${escapeHtml(monster.name)}" />` : ''}
+      ${wikiUrl && !isImageUrl ? `<iframe class="monster-page-preview" src="${escapeHtml(wikiUrl)}" title="${escapeHtml(monster.name)}のプレビュー" loading="lazy" tabindex="-1" sandbox="" referrerpolicy="no-referrer"></iframe>` : ''}
     </div>
   `;
-  return wikiUrl && !isImageUrl
+  return wikiUrl
     ? `<a class="monster-wiki-link" href="${escapeHtml(wikiUrl)}" target="_blank" rel="noopener noreferrer">${frame}</a>`
     : frame;
 }
