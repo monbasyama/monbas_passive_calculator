@@ -314,6 +314,14 @@ main {
   background: rgba(106, 169, 255, 0.12);
 }
 
+.monster-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .passive-item {
   display: flex;
   justify-content: space-between;
