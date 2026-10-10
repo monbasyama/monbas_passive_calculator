@@ -577,22 +577,16 @@ select {
 }
 
 .party-passive-summary {
-  margin-top: 20px;
-  padding: 16px;
+  margin-top: 12px;
+  padding: 10px;
   border: 1px solid var(--line-strong);
-  border-radius: 16px;
+  border-radius: 12px;
   background: rgba(10, 16, 32, 0.55);
 }
 
 .party-passive-summary h4 {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   color: var(--primary-strong);
-}
-
-.passive-summary-hint {
-  margin-bottom: 12px;
-  color: var(--muted);
-  font-size: 0.82rem;
 }
 
 .passive-summary-table-wrap {
@@ -601,14 +595,14 @@ select {
 
 .passive-summary-table {
   width: 100%;
-  min-width: 1120px;
+  min-width: 980px;
   border-collapse: collapse;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .passive-summary-table th,
 .passive-summary-table td {
-  padding: 9px 10px;
+  padding: 5px 7px;
   border: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
@@ -621,37 +615,27 @@ select {
 }
 
 .passive-summary-table tbody th {
-  min-width: 140px;
   font-weight: 400;
 }
 
-.passive-summary-table tbody td:nth-child(2) {
-  min-width: 240px;
+.passive-summary-table tbody th:first-child {
+  min-width: 130px;
 }
 
-.summary-slot-label,
-.passive-summary-table tbody td:nth-child(2) > span {
-  display: block;
+.passive-summary-table tbody td:nth-child(4) {
+  min-width: 130px;
 }
 
-.summary-slot-label,
-.summary-passive-target,
-.summary-passive-sources {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.passive-summary-table tbody th strong {
-  display: block;
-  margin-top: 3px;
+.passive-summary-table tbody td:nth-child(n + 5) {
+  white-space: nowrap;
 }
 
 .passive-value-equation {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  min-width: 100px;
+  gap: 4px;
+  min-width: 76px;
   white-space: nowrap;
 }
 
