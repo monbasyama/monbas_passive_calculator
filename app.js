@@ -571,15 +571,16 @@ function generatePdfFromParties() {
 
   let html = `
     <style>
-      .pdf-print-content { padding: 12px; color: #000; background: #fff; font-family: "Segoe UI", "Yu Gothic", sans-serif; }
-      .pdf-party { margin-bottom: 18px; page-break-inside: avoid; }
-      .pdf-party h2 { margin: 0 0 6px; font-size: 14px; }
-      .pdf-summary-table { width: 100%; border-collapse: collapse; font-size: 9px; }
-      .pdf-summary-table th, .pdf-summary-table td { padding: 4px; border: 1px solid #777; text-align: left; vertical-align: top; }
+      .pdf-print-content { padding: 6mm; color: #000; background: #fff; font-family: "Segoe UI", "Yu Gothic", sans-serif; }
+      .pdf-party { margin-bottom: 8px; page-break-inside: avoid; break-inside: avoid; }
+      .pdf-party h2 { margin: 0 0 3px; font-size: 11px; line-height: 1.1; }
+      .pdf-summary-table { width: 100%; border-collapse: collapse; font-size: 7px; line-height: 1.1; }
+      .pdf-summary-table th, .pdf-summary-table td { padding: 2px 3px; border: 1px solid #777; text-align: left; vertical-align: middle; }
+      .pdf-summary-table tr { page-break-inside: avoid; break-inside: avoid; }
       .pdf-summary-table thead { background: #eee; }
-      .pdf-summary-table .monster-image-cell { width: 32px; padding: 2px; text-align: center; vertical-align: middle; }
-      .pdf-summary-table .monster-image { position: static; inset: auto; display: block; width: 32px; height: 32px; margin: auto; object-fit: contain; }
-      .pdf-summary-table .passive-value-equation { display: flex; justify-content: space-between; gap: 3px; white-space: nowrap; }
+      .pdf-summary-table .monster-image-cell { width: 20px; padding: 1px; text-align: center; }
+      .pdf-summary-table .monster-image { position: static; inset: auto; display: block; width: 18px; height: 18px; margin: auto; object-fit: contain; }
+      .pdf-summary-table .passive-value-equation { display: flex; justify-content: space-between; gap: 2px; white-space: nowrap; }
     </style>
   `;
 
