@@ -18,39 +18,37 @@ function createId(prefix) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}-${Date.now()}`;
 }
 
-function isValidMonster(monster) {
-  return monster &&
-    typeof monster === 'object' &&
-    typeof monster.name === 'string' &&
-    Array.isArray(monster.passives) &&
-    monster.passives.every((passive) => {
-      return passive && typeof passive.label === 'string' && Number.isFinite(Number(passive.value));
-    });
-}
-
-function normalizeMonster(monster) {
+function createNewParty() {
   return {
-    id: typeof monster.id === 'string' ? monster.id : createId('monster'),
-    name: String(monster.name || '未設定').trim() || '未設定',
-    passives: Array.isArray(monster.passives)
-      ? monster.passives
-          .filter((passive) => passive && typeof passive.label === 'string')
-          .map((passive) => ({
-            label: (passive.label || '').trim() || '項目',
-            value: Number(passive.value) || 0
-          }))
-      : []
+    id: createId('party'),
+    slots: Array.from({ length: 6 }, () => '')
   };
 }
 
 function sanitizeMonsters(data) {
   if (!Array.isArray(data) || data.length === 0) return [...sampleMonsters];
-  const normalized = data.map(normalizeMonster).filter(isValidMonster);
+
+  const normalized = data
+    .map((monster) => ({
+      id: typeof monster.id === 'string' ? monster.id : createId('monster'),
+      name: String(monster.name || '未設定').trim() || '未設定',
+      passives: Array.isArray(monster.passives)
+        ? monster.passives
+            .filter((passive) => passive && typeof passive.label === 'string')
+            .map((passive) => ({
+              label: String(passive.label).trim() || '項目',
+              value: Number(passive.value) || 0
+            }))
+        : []
+    }))
+    .filter((monster) => monster && typeof monster.name === 'string' && Array.isArray(monster.passives));
+
   return normalized.length ? normalized : [...sampleMonsters];
 }
 
 function sanitizeParties(data) {
   if (!Array.isArray(data) || data.length === 0) return [createNewParty()];
+
   return data
     .filter((party) => party && Array.isArray(party.slots))
     .map((party) => ({
@@ -65,6 +63,7 @@ function loadMonsters() {
     localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(sampleMonsters));
     return [...sampleMonsters];
   }
+
   try {
     const parsed = JSON.parse(stored);
     return sanitizeMonsters(parsed);
@@ -100,23 +99,7 @@ function saveParties() {
   localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties));
 }
 
-function createNewParty() {
-  return {
-    id: createId('party'),
-    slots: Array.from({ length: 6 }, () => '')
-  };
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-function getPageUi() {
+function getUi() {
   return {
     partyRoot: document.getElementById('parties-container'),
     overallTotal: document.getElementById('overall-total'),
@@ -147,7 +130,7 @@ function calculatePartyTotal(party) {
 }
 
 function renderParties() {
-  const ui = getPageUi();
+  const ui = getUi();
   if (!ui.partyRoot || !ui.overallTotal) return;
 
   if (!parties.length) parties = [createNewParty()];
@@ -157,13 +140,16 @@ function renderParties() {
 
   ui.partyRoot.innerHTML = parties.map((party, partyIndex) => {
     const partyTotal = calculatePartyTotal(party);
+
     return `
       <article class="party-card" data-party-id="${party.id}">
         <div class="party-header">
           <h3>パーティー ${partyIndex + 1}</h3>
           <button class="danger-btn delete-party-btn" type="button" data-party-id="${party.id}">削除</button>
         </div>
+
         <div class="party-total">合計: ${partyTotal}</div>
+
         <div class="slot-grid">
           ${Array.from({ length: 6 }, (_, slotIndex) => {
             const selectedId = party.slots[slotIndex] || '';
@@ -192,7 +178,7 @@ function renderParties() {
                       </div>
                     `).join('')}
                   </div>
-                ` : '<div class=\"empty-state\">未選択</div>'}
+                ` : '<div class="empty-state">未選択</div>'}
               </div>
             `;
           }).join('')}
@@ -208,6 +194,7 @@ function attachPartyEvents() {
   document.querySelectorAll('.delete-party-btn').forEach((button) => {
     button.addEventListener('click', () => {
       const partyId = button.dataset.partyId;
+
       if (parties.length <= 1) {
         alert('最低でも1つのパーティーは必要です。');
         return;
@@ -235,36 +222,38 @@ function attachPartyEvents() {
 }
 
 function renderMonsters() {
-  const ui = getPageUi();
+  const ui = getUi();
   if (!ui.monsterList) return;
 
   if (!monsters.length) {
-    ui.monsterList.innerHTML = '<div class=\"empty-state\">登録済みのモンスターがありません。</div>';
+    ui.monsterList.innerHTML = '<div class="empty-state">登録済みのモンスターがありません。</div>';
     return;
   }
 
   ui.monsterList.innerHTML = monsters.map((monster) => `
-    <div class=\"monster-card-item\">
+    <div class="monster-card-item">
       <div>
         <h4>${monster.name}</h4>
-        <div class=\"monster-passives\">
-          ${monster.passives.map((passive) => `<span class=\"tag\">${passive.label}: ${passive.value}</span>`).join('')}
+        <div class="monster-passives">
+          ${monster.passives.map((passive) => `<span class="tag">${passive.label}: ${passive.value}</span>`).join('')}
         </div>
       </div>
-      <div class=\"monster-actions\">
-        <button class=\"secondary-btn\" type=\"button\" data-action=\"edit\" data-monster-id=\"${monster.id}\">編集</button>
-        <button class=\"danger-btn\" type=\"button\" data-action=\"delete\" data-monster-id=\"${monster.id}\">削除</button>
+
+      <div class="monster-actions">
+        <button class="secondary-btn" type="button" data-action="edit" data-monster-id="${monster.id}">編集</button>
+        <button class="danger-btn" type="button" data-action="delete" data-monster-id="${monster.id}">削除</button>
       </div>
     </div>
   `).join('');
 
-  ui.monsterList.querySelectorAll('[data-action=\"edit\"]').forEach((button) => {
+  ui.monsterList.querySelectorAll('[data-action="edit"]').forEach((button) => {
     button.addEventListener('click', () => {
       const monsterId = button.dataset.monsterId;
       const monster = monsters.find((item) => item.id === monsterId);
+
       if (!monster) return;
 
-      const ui2 = getPageUi();
+      const ui2 = getUi();
       if (ui2.monsterIdInput) ui2.monsterIdInput.value = monster.id;
       if (ui2.monsterNameInput) ui2.monsterNameInput.value = monster.name;
 
@@ -273,7 +262,7 @@ function renderMonsters() {
     });
   });
 
-  ui.monsterList.querySelectorAll('[data-action=\"delete\"]').forEach((button) => {
+  ui.monsterList.querySelectorAll('[data-action="delete"]').forEach((button) => {
     button.addEventListener('click', () => {
       const monsterId = button.dataset.monsterId;
       if (!window.confirm('このモンスターを削除しますか？')) return;
@@ -294,16 +283,16 @@ function renderMonsters() {
 }
 
 function renderPassiveEditor(passives = []) {
-  const ui = getPageUi();
+  const ui = getUi();
   if (!ui.passiveEditor) return;
 
   const sourcePassives = passives.length ? passives : [{ label: '', value: 0 }];
 
   ui.passiveEditor.innerHTML = sourcePassives.map((passive, index) => `
-    <div class=\"passive-row\">
-      <input class=\"passive-label\" type=\"text\" value=\"${escapeHtml(passive.label)}\" placeholder=\"例: 攻撃\" />
-      <input class=\"passive-value\" type=\"number\" value=\"${Number(passive.value) || 0}\" placeholder=\"0\" />
-      <button type=\"button\" class=\"remove-passive-btn\" data-index=\"${index}\">×</button>
+    <div class="passive-row">
+      <input class="passive-label" type="text" value="${escapeHtml(passive.label)}" placeholder="例: 攻撃" />
+      <input class="passive-value" type="number" value="${Number(passive.value) || 0}" placeholder="0" />
+      <button type="button" class="remove-passive-btn" data-index="${index}">×</button>
     </div>
   `).join('');
 
@@ -321,19 +310,20 @@ function renderPassiveEditor(passives = []) {
 }
 
 function addPassiveInputToEditor() {
-  const ui = getPageUi();
+  const ui = getUi();
   if (!ui.passiveEditor) return;
 
   const row = document.createElement('div');
   row.className = 'passive-row';
   row.innerHTML = `
-    <input class=\"passive-label\" type=\"text\" placeholder=\"例: 攻撃\" />
-    <input class=\"passive-value\" type=\"number\" value=\"0\" placeholder=\"0\" />
-    <button type=\"button\" class=\"remove-passive-btn\">×</button>
+    <input class="passive-label" type="text" placeholder="例: 攻撃" />
+    <input class="passive-value" type="number" value="0" placeholder="0" />
+    <button type="button" class="remove-passive-btn">×</button>
   `;
 
   row.querySelector('.remove-passive-btn').addEventListener('click', () => {
     row.remove();
+
     if (!ui.passiveEditor.querySelectorAll('.passive-row').length) {
       addPassiveInputToEditor();
     }
@@ -343,88 +333,91 @@ function addPassiveInputToEditor() {
 }
 
 function resetMonsterForm() {
-  const ui = getPageUi();
-
+  const ui = getUi();
   if (ui.monsterForm) ui.monsterForm.reset();
   if (ui.monsterIdInput) ui.monsterIdInput.value = '';
   renderPassiveEditor();
 }
 
-function generatePdfFromParties() {
-  if (window.html2pdf) {
-    const element = document.createElement('div');
-    element.style.padding = '18px';
-    element.style.fontFamily = '\"Segoe UI\", \"Yu Gothic\", sans-serif';
-    element.style.lineHeight = '1.6';
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
-    let html = `
-      <h1 style="text-align: center; margin-bottom: 20px;">Monbas Passive Calculator</h1>
-      <h2 style="text-align: center; margin-bottom: 30px;">全パーティー一覧</h2>
+function generatePdfFromParties() {
+  const printable = document.createElement('div');
+  printable.style.padding = '20px';
+  printable.style.fontFamily = '"Segoe UI", "Yu Gothic", sans-serif';
+  printable.style.color = '#000';
+  printable.style.backgroundColor = '#fff';
+
+  let html = `
+    <h1 style="text-align:center; margin-bottom:16px; color:#000;">Monbas Passive Calculator</h1>
+    <h2 style="text-align:center; margin-bottom:26px; color:#000;">全パーティー一覧</h2>
+  `;
+
+  parties.forEach((party, partyIndex) => {
+    const total = calculatePartyTotal(party);
+
+    html += `
+      <div style="margin-bottom: 28px; page-break-inside: avoid;">
+        <h3 style="border-bottom: 2px solid #333; padding-bottom: 8px; color:#000;">パーティー ${partyIndex + 1}</h3>
+        <p style="font-weight: bold; color:#000;">合計: ${total}</p>
+        <table style="width:100%; border-collapse: collapse; font-size:12px;">
+          <tr style="background:#e8e8e8;">
+            <th style="border: 1px solid #333; padding:10px; text-align:left; color:#000; font-weight:bold;">スロット</th>
+            <th style="border: 1px solid #333; padding:10px; text-align:left; color:#000; font-weight:bold;">モンスター</th>
+            <th style="border: 1px solid #333; padding:10px; text-align:right; color:#000; font-weight:bold;">パッシブ</th>
+          </tr>
     `;
 
-    parties.forEach((party, partyIndex) => {
-      const total = calculatePartyTotal(party);
-      html += `
-        <div style="margin-bottom: 30px; page-break-inside: avoid;">
-          <h3 style="border-bottom: 1px solid #333; padding-bottom: 8px;">パーティー ${partyIndex + 1}</h3>
-          <p style="font-weight: bold;">合計: ${total}</p>
-          <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-            <tr style="background: #f3f4f6;">
-              <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">スロット</th>
-              <th style="border: 1px solid #ccc; padding: 8px; text-align: left;">モンスター</th>
-              <th style="border: 1px solid #ccc; padding: 8px; text-align: right;">パッシブ</th>
-            </tr>
-      `;
+    party.slots.forEach((slotId, slotIndex) => {
+      const slotLabel = slotIndex < 5 ? `モンスター ${slotIndex + 1}` : '助っ人';
+      const monster = monsters.find((item) => item.id === slotId);
 
-      party.slots.forEach((slotId, slotIndex) => {
-        const slotLabel = slotIndex < 5 ? `モンスター ${slotIndex + 1}` : '助っ人';
-        const monster = monsters.find((item) => item.id === slotId);
-
-        if (monster) {
-          const passiveText = monster.passives.map((p) => `${p.label}: ${p.value}`).join(', ');
-          html += `
-            <tr>
-              <td style="border: 1px solid #ccc; padding: 8px;">${slotLabel}</td>
-              <td style="border: 1px solid #ccc; padding: 8px;">${monster.name}</td>
-              <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">${passiveText}</td>
-            </tr>
-          `;
-        } else {
-          html += `
-            <tr>
-              <td style="border: 1px solid #ccc; padding: 8px;">${slotLabel}</td>
-              <td style="border: 1px solid #ccc; padding: 8px;">未選択</td>
-              <td style="border: 1px solid #ccc; padding: 8px; text-align: right;">-</td>
-            </tr>
-          `;
-        }
-      });
-
-      html += '</table></div>';
+      if (monster) {
+        const passiveText = monster.passives.map((p) => `${p.label}: ${p.value}`).join(', ');
+        html += `
+          <tr>
+            <td style="border:1px solid #333; padding:10px; color:#000;">${slotLabel}</td>
+            <td style="border:1px solid #333; padding:10px; color:#000;">${monster.name}</td>
+            <td style="border:1px solid #333; padding:10px; text-align:right; color:#000;">${passiveText}</td>
+          </tr>
+        `;
+      } else {
+        html += `
+          <tr>
+            <td style="border:1px solid #333; padding:10px; color:#999;">${slotLabel}</td>
+            <td style="border:1px solid #333; padding:10px; color:#999;">未選択</td>
+            <td style="border:1px solid #333; padding:10px; text-align:right; color:#999;">-</td>
+          </tr>
+        `;
+      }
     });
 
-    element.innerHTML = html;
+    html += '</table></div>';
+  });
 
-    const opt = {
-      margin: 10,
-      filename: 'monbas_passive_calculator.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+  printable.innerHTML = html;
 
-    window.html2pdf().set(opt).from(element).save();
-    return;
-  }
+  document.body.appendChild(printable);
 
   window.print();
+
+  setTimeout(() => {
+    printable.remove();
+  }, 500);
 }
 
 function initializePartyPage() {
   monsters = loadMonsters();
   parties = loadParties();
 
-  const ui = getPageUi();
+  const ui = getUi();
 
   if (ui.addPartyBtn) {
     ui.addPartyBtn.addEventListener('click', () => {
@@ -447,7 +440,7 @@ function initializeMonsterPage() {
   monsters = loadMonsters();
   parties = loadParties();
 
-  const ui = getPageUi();
+  const ui = getUi();
 
   if (ui.addPassiveBtn) {
     ui.addPassiveBtn.addEventListener('click', addPassiveInputToEditor);
@@ -501,8 +494,7 @@ function initializeMonsterPage() {
     });
   }
 
-  if (ui.monsterForm) {
-    renderMonsters();
+  if (ui.passiveEditor) {
     renderPassiveEditor();
   }
 
@@ -511,20 +503,7 @@ function initializeMonsterPage() {
   }
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const isPartyPage = !!document.getElementById('parties-container');
-    const isMonsterPage = !!document.getElementById('monster-form');
-
-    if (isPartyPage) {
-      initializePartyPage();
-    }
-
-    if (isMonsterPage) {
-      initializeMonsterPage();
-    }
-  });
-} else {
+function startApp() {
   const isPartyPage = !!document.getElementById('parties-container');
   const isMonsterPage = !!document.getElementById('monster-form');
 
@@ -535,4 +514,10 @@ if (document.readyState === 'loading') {
   if (isMonsterPage) {
     initializeMonsterPage();
   }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
 }
