@@ -196,11 +196,19 @@ function getPassiveBonuses(party, targetSlotIndex, targetMonster) {
   return bonuses;
 }
 
-function searchMonsters(query) {
-  const lowerQuery = query.toLowerCase().trim();
+function normalizeSearchText(text) {
+  return String(text || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\u30a1-\u30f6]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60))
+    .replace(/[\s\u30fb・･]/g, '');
+}
 
-  return monsters.filter((monster) => 
-    !lowerQuery || monster.name.toLowerCase().includes(lowerQuery)
+function searchMonsters(query) {
+  const normalizedQuery = normalizeSearchText(query);
+
+  return monsters.filter((monster) =>
+    !normalizedQuery || normalizeSearchText(monster.name).includes(normalizedQuery)
   );
 }
 
@@ -209,11 +217,6 @@ function renderMonsterSearchResults() {
   if (!ui.monsterSearchInput || !ui.monsterSearchResults) return;
 
   const query = ui.monsterSearchInput.value;
-  if (!query.trim()) {
-    ui.monsterSearchResults.innerHTML = '';
-    return;
-  }
-
   const results = searchMonsters(query);
 
   if (results.length === 0) {
@@ -479,14 +482,14 @@ function attachPartyEvents() {
     });
 
     input.addEventListener('input', (event) => {
-      const query = event.target.value.toLowerCase().trim();
+      const query = normalizeSearchText(event.target.value);
       const dropdown = event.target.nextElementSibling;
       
       if (!dropdown) return;
 
       const items = dropdown.querySelectorAll('.dropdown-item');
       items.forEach((item) => {
-        const monsterName = item.textContent.toLowerCase();
+        const monsterName = normalizeSearchText(item.textContent);
         if (monsterName.includes(query) || !query) {
           item.style.display = 'block';
         } else {
