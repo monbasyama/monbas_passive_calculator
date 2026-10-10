@@ -1,19 +1,19 @@
 const STORAGE_KEYS = {
   monsters: 'monbas_monsters_v1',
-  parties: 'monbas_parties_v1'
+  parties: 'monbas_parties_v1',
+  monsterDataVersion: 'monbas_monster_data_version'
 };
 
 const RACE_OPTIONS = ['魔神', '神族', '異端', '魔族', '精霊', '鬼族', '魔獣', '聖獣', '飛天', '聖人'];
 const ELEMENT_OPTIONS = ['闇', '火', '水', '風', '雷', '無', '光'];
-
-const sampleMonsters = [
-  { id: 'monster-fire-dragon', name: '火竜', race: '魔獣', element: '火', passiveTarget: ['魔獣', '火'], attack: 18, agility: 12, hp: 15, sp: 10, crt: 8 },
-  { id: 'monster-ice-wolf', name: '氷狼', race: '魔獣', element: '水', passiveTarget: ['魔獣', '水'], attack: 14, agility: 16, hp: 12, sp: 9, crt: 11 },
-  { id: 'monster-sky-bird', name: '空鳥', race: '飛天', element: '風', passiveTarget: ['飛天', '風'], attack: 10, agility: 20, hp: 10, sp: 14, crt: 9 },
-  { id: 'monster-stone-giant', name: '岩巨人', race: '鬼族', element: '無', passiveTarget: ['鬼族', '無'], attack: 16, agility: 8, hp: 22, sp: 12, crt: 5 },
-  { id: 'monster-moon-cat', name: '月猫', race: '精霊', element: '光', passiveTarget: ['精霊', '光'], attack: 12, agility: 14, hp: 11, sp: 16, crt: 13 }
-];
-
+const MONSTER_DATA_VERSION = '2026-10-roster';
+const LEGACY_SAMPLE_IDS = new Set([
+  'monster-fire-dragon',
+  'monster-ice-wolf',
+  'monster-sky-bird',
+  'monster-stone-giant',
+  'monster-moon-cat'
+]);
 let monsters = [];
 let parties = [];
 
@@ -29,7 +29,7 @@ function createNewParty() {
 }
 
 function sanitizeMonsters(data) {
-  if (!Array.isArray(data) || data.length === 0) return [...sampleMonsters];
+  if (!Array.isArray(data) || data.length === 0) return [...MONSTER_DATA];
 
   const normalized = data
     .map((monster) => {
@@ -41,6 +41,7 @@ function sanitizeMonsters(data) {
         element: String(monster.element || '').trim(),
         passiveTarget: passiveTarget.filter(t => typeof t === 'string'),
         attack: Number(monster.attack) || 0,
+        defense: Number(monster.defense) || 0,
         agility: Number(monster.agility) || 0,
         hp: Number(monster.hp) || 0,
         sp: Number(monster.sp) || 0,
@@ -49,7 +50,7 @@ function sanitizeMonsters(data) {
     })
     .filter((monster) => monster && typeof monster.name === 'string');
 
-  return normalized.length ? normalized : [...sampleMonsters];
+  return normalized.length ? normalized : [...MONSTER_DATA];
 }
 
 function sanitizeParties(data) {
@@ -66,16 +67,28 @@ function sanitizeParties(data) {
 function loadMonsters() {
   const stored = localStorage.getItem(STORAGE_KEYS.monsters);
   if (!stored) {
-    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(sampleMonsters));
-    return [...sampleMonsters];
+    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(MONSTER_DATA));
+    localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
+    return [...MONSTER_DATA];
   }
 
   try {
-    const parsed = JSON.parse(stored);
-    return sanitizeMonsters(parsed);
+    const monstersFromStorage = sanitizeMonsters(JSON.parse(stored));
+    if (localStorage.getItem(STORAGE_KEYS.monsterDataVersion) !== MONSTER_DATA_VERSION) {
+      const seedNames = new Set(MONSTER_DATA.map((monster) => monster.name));
+      const existingCustomMonsters = monstersFromStorage.filter((monster) =>
+        !LEGACY_SAMPLE_IDS.has(monster.id) && !seedNames.has(monster.name)
+      );
+      const migratedMonsters = [...MONSTER_DATA, ...existingCustomMonsters];
+      localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(migratedMonsters));
+      localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
+      return migratedMonsters;
+    }
+    return monstersFromStorage;
   } catch (error) {
-    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(sampleMonsters));
-    return [...sampleMonsters];
+    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(MONSTER_DATA));
+    localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
+    return [...MONSTER_DATA];
   }
 }
 
@@ -120,6 +133,7 @@ function getUi() {
     monsterRaceInput: document.getElementById('monster-race'),
     monsterElementInput: document.getElementById('monster-element'),
     monsterAttackInput: document.getElementById('monster-attack'),
+    monsterDefenseInput: document.getElementById('monster-defense'),
     monsterAgilityInput: document.getElementById('monster-agility'),
     monsterHpInput: document.getElementById('monster-hp'),
     monsterSpInput: document.getElementById('monster-sp'),
@@ -136,19 +150,15 @@ function calculatePartyTotal(party) {
     const selectedMonster = monsters.find((monster) => monster.id === selectedId);
     if (!selectedMonster) return sum;
 
-    return sum + (selectedMonster.attack + selectedMonster.agility + selectedMonster.hp + selectedMonster.sp + selectedMonster.crt);
+    return sum + (selectedMonster.attack + selectedMonster.defense + selectedMonster.agility + selectedMonster.hp + selectedMonster.sp + selectedMonster.crt);
   }, 0);
 }
 
 function searchMonsters(query) {
   const lowerQuery = query.toLowerCase().trim();
-  
-  if (!lowerQuery) {
-    return [];
-  }
 
   return monsters.filter((monster) => 
-    monster.name.toLowerCase().includes(lowerQuery)
+    !lowerQuery || monster.name.toLowerCase().includes(lowerQuery)
   );
 }
 
@@ -158,11 +168,6 @@ function renderMonsterSearchResults() {
 
   const query = ui.monsterSearchInput.value;
   const results = searchMonsters(query);
-
-  if (!query) {
-    ui.monsterSearchResults.innerHTML = '<div class="empty-state">検索キーワードを入力してください</div>';
-    return;
-  }
 
   if (results.length === 0) {
     ui.monsterSearchResults.innerHTML = '<div class="empty-state">検索結果がありません</div>';
@@ -180,6 +185,7 @@ function renderMonsterSearchResults() {
         </div>
         <div class="monster-stats">
           <span>攻撃: ${monster.attack}</span>
+          <span>防御: ${monster.defense}</span>
           <span>素早さ: ${monster.agility}</span>
           <span>HP: ${monster.hp}</span>
           <span>SP: ${monster.sp}</span>
@@ -219,6 +225,7 @@ function renderMonsterSearchResults() {
       });
 
       if (ui2.monsterAttackInput) ui2.monsterAttackInput.value = monster.attack;
+      if (ui2.monsterDefenseInput) ui2.monsterDefenseInput.value = monster.defense;
       if (ui2.monsterAgilityInput) ui2.monsterAgilityInput.value = monster.agility;
       if (ui2.monsterHpInput) ui2.monsterHpInput.value = monster.hp;
       if (ui2.monsterSpInput) ui2.monsterSpInput.value = monster.sp;
@@ -299,6 +306,7 @@ function renderParties() {
                     <strong>${escapeHtml(selectedMonster.name)}</strong>
                     <div class="monster-stats">
                       <span>攻撃: ${selectedMonster.attack}</span>
+                      <span>防御: ${selectedMonster.defense}</span>
                       <span>素早さ: ${selectedMonster.agility}</span>
                       <span>HP: ${selectedMonster.hp}</span>
                       <span>SP: ${selectedMonster.sp}</span>
@@ -410,6 +418,7 @@ function escapeHtml(value) {
 
 function generatePdfFromParties() {
   const printable = document.createElement('div');
+  printable.className = 'pdf-print-content';
   printable.style.padding = '20px';
   printable.style.fontFamily = '"Segoe UI", "Yu Gothic", sans-serif';
   printable.style.color = '#000';
@@ -440,7 +449,7 @@ function generatePdfFromParties() {
       const monster = monsters.find((item) => item.id === slotId);
 
       if (monster) {
-        const stats = `攻撃: ${monster.attack}, 素早さ: ${monster.agility}, HP: ${monster.hp}, SP: ${monster.sp}, Crt: ${monster.crt}`;
+        const stats = `攻撃: ${monster.attack}, 防御: ${monster.defense}, 素早さ: ${monster.agility}, HP: ${monster.hp}, SP: ${monster.sp}, Crt: ${monster.crt}`;
         html += `
           <tr>
             <td style="border:1px solid #333; padding:10px; color:#000;">${slotLabel}</td>
@@ -463,14 +472,9 @@ function generatePdfFromParties() {
   });
 
   printable.innerHTML = html;
-
   document.body.appendChild(printable);
-
+  window.addEventListener('afterprint', () => printable.remove(), { once: true });
   window.print();
-
-  setTimeout(() => {
-    printable.remove();
-  }, 500);
 }
 
 function initializePartyPage() {
@@ -526,6 +530,7 @@ function initializeMonsterPage() {
       });
       
       const attack = Number(ui.monsterAttackInput ? ui.monsterAttackInput.value : 0);
+      const defense = Number(ui.monsterDefenseInput ? ui.monsterDefenseInput.value : 0);
       const agility = Number(ui.monsterAgilityInput ? ui.monsterAgilityInput.value : 0);
       const hp = Number(ui.monsterHpInput ? ui.monsterHpInput.value : 0);
       const sp = Number(ui.monsterSpInput ? ui.monsterSpInput.value : 0);
@@ -546,11 +551,6 @@ function initializeMonsterPage() {
         return;
       }
 
-      if (passiveTarget.length === 0) {
-        alert('パッシブ対象を最低1つ選択してください。');
-        return;
-      }
-
       if (id) {
         const targetMonster = monsters.find((monster) => monster.id === id);
         if (targetMonster) {
@@ -559,6 +559,7 @@ function initializeMonsterPage() {
           targetMonster.element = element;
           targetMonster.passiveTarget = passiveTarget;
           targetMonster.attack = attack;
+          targetMonster.defense = defense;
           targetMonster.agility = agility;
           targetMonster.hp = hp;
           targetMonster.sp = sp;
@@ -572,6 +573,7 @@ function initializeMonsterPage() {
           element,
           passiveTarget,
           attack,
+          defense,
           agility,
           hp,
           sp,
