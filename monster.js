@@ -192,3 +192,7 @@ const MONSTER_DATA = `
     imageUrl: ''
   };
 });
+
+if (typeof module !== 'undefined') {
+  module.exports = MONSTER_DATA;
+}

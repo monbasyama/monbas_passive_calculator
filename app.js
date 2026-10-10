@@ -1,7 +1,5 @@
 const STORAGE_KEYS = {
-  monsters: 'monbas_monsters_v1',
-  parties: 'monbas_parties_v1',
-  monsterDataVersion: 'monbas_monster_data_version'
+  parties: 'monbas_parties_v1'
 };
 
 const RACE_OPTIONS = ['魔神', '神族', '異端', '魔族', '精霊', '鬼族', '魔獣', '聖獣', '飛天', '聖人'];
@@ -14,14 +12,6 @@ const PASSIVE_STATS = [
   { key: 'sp', label: 'SP', shortLabel: 'SP' },
   { key: 'crt', label: 'Crt', shortLabel: 'Cr' }
 ];
-const MONSTER_DATA_VERSION = '2026-10-monster-urls';
-const LEGACY_SAMPLE_IDS = new Set([
-  'monster-fire-dragon',
-  'monster-ice-wolf',
-  'monster-sky-bird',
-  'monster-stone-giant',
-  'monster-moon-cat'
-]);
 let monsters = [];
 let parties = [];
 
@@ -37,7 +27,7 @@ function createNewParty() {
 }
 
 function sanitizeMonsters(data) {
-  if (!Array.isArray(data) || data.length === 0) return [...MONSTER_DATA];
+  if (!Array.isArray(data)) return [];
 
   const normalized = data
     .map((monster) => {
@@ -60,7 +50,7 @@ function sanitizeMonsters(data) {
     })
     .filter((monster) => monster && typeof monster.name === 'string');
 
-  return normalized.length ? normalized : [...MONSTER_DATA];
+  return normalized;
 }
 
 function sanitizeParties(data) {
@@ -74,42 +64,10 @@ function sanitizeParties(data) {
     }));
 }
 
-function loadMonsters() {
-  const stored = localStorage.getItem(STORAGE_KEYS.monsters);
-  if (!stored) {
-    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(MONSTER_DATA));
-    localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
-    return [...MONSTER_DATA];
-  }
-
-  try {
-    const monstersFromStorage = sanitizeMonsters(JSON.parse(stored));
-    if (localStorage.getItem(STORAGE_KEYS.monsterDataVersion) !== MONSTER_DATA_VERSION) {
-      const seedNames = new Set(MONSTER_DATA.map((monster) => monster.name));
-      const existingCustomMonsters = monstersFromStorage.filter((monster) =>
-        !LEGACY_SAMPLE_IDS.has(monster.id) && !seedNames.has(monster.name)
-      );
-      const storedUrls = new Map(monstersFromStorage.map((monster) => [monster.name, {
-        wikiUrl: monster.wikiUrl,
-        imageUrl: monster.imageUrl
-      }]));
-      const migratedMonsters = [
-        ...MONSTER_DATA.map((monster) => ({
-          ...monster,
-          ...storedUrls.get(monster.name)
-        })),
-        ...existingCustomMonsters
-      ];
-      localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(migratedMonsters));
-      localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
-      return migratedMonsters;
-    }
-    return monstersFromStorage;
-  } catch (error) {
-    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(MONSTER_DATA));
-    localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
-    return [...MONSTER_DATA];
-  }
+async function loadMonsters() {
+  const response = await fetch('/api/monsters', { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('サーバーからモンスターデータを取得できませんでした。');
+  return sanitizeMonsters(await response.json());
 }
 
 function loadParties() {
@@ -130,8 +88,44 @@ function loadParties() {
   }
 }
 
-function saveMonsters() {
-  localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(monsters));
+function getAdminToken() {
+  let token = sessionStorage.getItem('monbas_admin_token');
+  if (!token) {
+    token = window.prompt('モンスター管理用パスワードを入力してください。');
+    if (!token) throw new Error('操作をキャンセルしました。');
+    sessionStorage.setItem('monbas_admin_token', token);
+  }
+  return token;
+}
+
+async function saveMonsterToServer(monster, id = '') {
+  const response = await fetch(id ? `/api/monsters/${encodeURIComponent(id)}` : '/api/monsters', {
+    method: id ? 'PUT' : 'POST',
+    headers: {
+      Authorization: 'Bearer ' + getAdminToken(),
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    },
+    body: JSON.stringify(monster)
+  });
+  if (response.status === 401) {
+    sessionStorage.removeItem('monbas_admin_token');
+    throw new Error('パスワードが正しくありません。もう一度操作してください。');
+  }
+  if (!response.ok) throw new Error('サーバーへの保存に失敗しました。');
+  return response.json();
+}
+
+async function deleteMonsterFromServer(id) {
+  const response = await fetch(`/api/monsters/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { Authorization: 'Bearer ' + getAdminToken() }
+  });
+  if (response.status === 401) {
+    sessionStorage.removeItem('monbas_admin_token');
+    throw new Error('パスワードが正しくありません。もう一度操作してください。');
+  }
+  if (!response.ok) throw new Error('サーバーからの削除に失敗しました。');
 }
 
 function saveParties() {
@@ -301,10 +295,16 @@ function renderMonsterSearchResults() {
   });
 
   ui.monsterSearchResults.querySelectorAll('[data-action="delete"]').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
       const monsterId = button.dataset.monsterId;
       if (!window.confirm('このモンスターを削除しますか？')) return;
 
+      try {
+        await deleteMonsterFromServer(monsterId);
+      } catch (error) {
+        window.alert(error.message);
+        return;
+      }
       monsters = monsters.filter((monster) => monster.id !== monsterId);
 
       parties = parties.map((party) => ({
@@ -312,7 +312,6 @@ function renderMonsterSearchResults() {
         slots: party.slots.map((slotId) => (slotId === monsterId ? '' : slotId))
       }));
 
-      saveMonsters();
       saveParties();
       renderMonsterSearchResults();
       renderParties();
@@ -630,8 +629,13 @@ function generatePdfFromParties() {
   window.print();
 }
 
-function initializePartyPage() {
-  monsters = loadMonsters();
+async function initializePartyPage() {
+  try {
+    monsters = await loadMonsters();
+  } catch (error) {
+    monsters = [];
+    window.alert(error.message);
+  }
   parties = loadParties();
 
   const ui = getUi();
@@ -653,8 +657,14 @@ function initializePartyPage() {
   }
 }
 
-function initializeMonsterPage() {
-  monsters = loadMonsters();
+async function initializeMonsterPage() {
+  try {
+    monsters = await loadMonsters();
+    setMonsterDataStatus('サーバー上の共有データを表示しています。');
+  } catch (error) {
+    monsters = [];
+    setMonsterDataStatus(error.message, true);
+  }
   parties = loadParties();
 
   const ui = getUi();
@@ -668,7 +678,7 @@ function initializeMonsterPage() {
   }
 
   if (ui.monsterForm) {
-    ui.monsterForm.addEventListener('submit', (event) => {
+    ui.monsterForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
       const id = ui.monsterIdInput ? ui.monsterIdInput.value : '';
@@ -706,25 +716,9 @@ function initializeMonsterPage() {
         return;
       }
 
-      if (id) {
-        const targetMonster = monsters.find((monster) => monster.id === id);
-        if (targetMonster) {
-          targetMonster.name = name;
-          targetMonster.race = race;
-          targetMonster.element = element;
-          targetMonster.passiveTarget = passiveTarget;
-          targetMonster.attack = attack;
-          targetMonster.defense = defense;
-          targetMonster.agility = agility;
-          targetMonster.hp = hp;
-          targetMonster.sp = sp;
-          targetMonster.crt = crt;
-          targetMonster.wikiUrl = wikiUrl;
-          targetMonster.imageUrl = imageUrl;
-        }
-      } else {
-        monsters.push({
-          id: createId('monster'),
+      let savedMonster;
+      try {
+        savedMonster = await saveMonsterToServer({
           name,
           race,
           element,
@@ -737,10 +731,18 @@ function initializeMonsterPage() {
           crt,
           wikiUrl,
           imageUrl
-        });
+        }, id);
+      } catch (error) {
+        window.alert(error.message);
+        return;
       }
 
-      saveMonsters();
+      if (id) {
+        monsters = monsters.map((monster) => monster.id === id ? savedMonster : monster);
+      } else {
+        monsters.push(savedMonster);
+      }
+      setMonsterDataStatus('モンスターデータをサーバーに保存しました。');
       renderMonsterSearchResults();
       renderParties();
       resetMonsterForm();
@@ -765,6 +767,13 @@ function startApp() {
   if (isMonsterPage) {
     initializeMonsterPage();
   }
+}
+
+function setMonsterDataStatus(message, isError = false) {
+  const status = document.getElementById('monster-data-status');
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle('error-message', isError);
 }
 
 if (document.readyState === 'loading') {
