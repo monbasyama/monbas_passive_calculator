@@ -164,7 +164,6 @@ function calculatePartyTotal(party) {
 
 function getPassiveBonuses(party, targetSlotIndex, targetMonster) {
   const bonuses = Object.fromEntries(PASSIVE_STATS.map(({ key }) => [key, 0]));
-  const sources = [];
 
   party.slots.forEach((sourceId, sourceSlotIndex) => {
     if (!sourceId || sourceSlotIndex === targetSlotIndex) return;
@@ -179,13 +178,9 @@ function getPassiveBonuses(party, targetSlotIndex, targetMonster) {
     PASSIVE_STATS.forEach(({ key }) => {
       bonuses[key] += Number(sourceMonster[key]) || 0;
     });
-    sources.push({
-      name: sourceMonster.name,
-      matches: [matchesRace && '種族', matchesElement && '属性'].filter(Boolean)
-    });
   });
 
-  return { bonuses, sources };
+  return bonuses;
 }
 
 function searchMonsters(query) {
@@ -367,33 +362,29 @@ function renderParties() {
         ${selectedMonsters.length ? `
           <section class="party-passive-summary" aria-label="選択モンスターのパッシブ反映一覧">
             <h4>選択モンスターのパッシブ反映一覧</h4>
-            <p class="passive-summary-hint">個別値 + 他のモンスターからの上乗せ = 反映後</p>
             <div class="passive-summary-table-wrap">
               <table class="passive-summary-table">
                 <thead>
                   <tr>
                     <th scope="col">モンスター</th>
-                    <th scope="col">種族 / 属性・反映元</th>
+                    <th scope="col">種族</th>
+                    <th scope="col">属性</th>
+                    <th scope="col">パッシブ対象</th>
                     ${PASSIVE_STATS.map(({ label }) => `<th scope="col">${label}</th>`).join('')}
                   </tr>
                 </thead>
                 <tbody>
                   ${selectedMonsters.map(({ monster, slotIndex }) => {
-                    const { bonuses, sources } = getPassiveBonuses(party, slotIndex, monster);
-                    const slotLabel = slotIndex < 5 ? `モンスター ${slotIndex + 1}` : '助っ人';
+                    const bonuses = getPassiveBonuses(party, slotIndex, monster);
 
                     return `
                       <tr>
                         <th scope="row">
-                          <span class="summary-slot-label">${slotLabel}</span>
-                          <strong>${escapeHtml(monster.name)}</strong>
+                          ${escapeHtml(monster.name)}
                         </th>
-                        <td>
-                          <span>種族: ${escapeHtml(monster.race || '未設定')}</span>
-                          <span>属性: ${escapeHtml(monster.element || '未設定')}</span>
-                          <span class="summary-passive-target">パッシブ対象: ${escapeHtml(monster.passiveTarget.join('、') || 'なし')}</span>
-                          <span class="summary-passive-sources">反映元: ${sources.length ? sources.map(({ name, matches }) => `${escapeHtml(name)}（${matches.join('・')}）`).join('、') : 'なし'}</span>
-                        </td>
+                        <td>${escapeHtml(monster.race || '未設定')}</td>
+                        <td>${escapeHtml(monster.element || '未設定')}</td>
+                        <td>${escapeHtml(monster.passiveTarget.join('、') || 'なし')}</td>
                         ${PASSIVE_STATS.map(({ key }) => {
                           const individual = Number(monster[key]) || 0;
                           const bonus = bonuses[key];
@@ -516,56 +507,57 @@ function escapeHtml(value) {
 function generatePdfFromParties() {
   const printable = document.createElement('div');
   printable.className = 'pdf-print-content';
-  printable.style.padding = '20px';
-  printable.style.fontFamily = '"Segoe UI", "Yu Gothic", sans-serif';
-  printable.style.color = '#000';
-  printable.style.backgroundColor = '#fff';
 
   let html = `
-    <h1 style="text-align:center; margin-bottom:16px; color:#000;">ちょいと召喚モンスターバスケット</h1>
-    <h2 style="text-align:center; margin-bottom:26px; color:#000;">全パーティー一覧</h2>
+    <style>
+      .pdf-print-content { padding: 12px; color: #000; font-family: "Segoe UI", "Yu Gothic", sans-serif; }
+      .pdf-party { margin-bottom: 18px; page-break-inside: avoid; }
+      .pdf-party h2 { margin: 0 0 6px; font-size: 14px; }
+      .pdf-summary-table { width: 100%; border-collapse: collapse; font-size: 9px; }
+      .pdf-summary-table th, .pdf-summary-table td { padding: 4px; border: 1px solid #777; text-align: left; vertical-align: top; }
+      .pdf-summary-table thead { background: #eee; }
+      .pdf-summary-table .passive-value-equation { display: flex; justify-content: space-between; gap: 3px; white-space: nowrap; }
+    </style>
   `;
 
   parties.forEach((party, partyIndex) => {
-    const total = calculatePartyTotal(party);
+    const selectedMonsters = party.slots
+      .map((monsterId, slotIndex) => ({
+        monster: monsters.find((item) => item.id === monsterId),
+        slotIndex
+      }))
+      .filter(({ monster }) => monster);
+    if (!selectedMonsters.length) return;
 
     html += `
-      <div style="margin-bottom: 28px; page-break-inside: avoid;">
-        <h3 style="border-bottom: 2px solid #333; padding-bottom: 8px; color:#000;">パーティー ${partyIndex + 1}</h3>
-        <p style="font-weight: bold; color:#000;">合計: ${total}</p>
-        <table style="width:100%; border-collapse: collapse; font-size:12px;">
-          <tr style="background:#e8e8e8;">
-            <th style="border: 1px solid #333; padding:10px; text-align:left; color:#000; font-weight:bold;">スロット</th>
-            <th style="border: 1px solid #333; padding:10px; text-align:left; color:#000; font-weight:bold;">モンスター</th>
-            <th style="border: 1px solid #333; padding:10px; text-align:right; color:#000; font-weight:bold;">ステータス</th>
-          </tr>
+      <section class="pdf-party">
+        <h2>パーティー ${partyIndex + 1}：選択モンスターのパッシブ反映一覧</h2>
+        <table class="pdf-summary-table">
+          <thead><tr>
+            <th>モンスター</th><th>種族</th><th>属性</th><th>パッシブ対象</th>
+            ${PASSIVE_STATS.map(({ label }) => `<th>${label}</th>`).join('')}
+          </tr></thead>
+          <tbody>
     `;
 
-    party.slots.forEach((slotId, slotIndex) => {
-      const slotLabel = slotIndex < 5 ? `モンスター ${slotIndex + 1}` : '助っ人';
-      const monster = monsters.find((item) => item.id === slotId);
-
-      if (monster) {
-        const stats = `攻撃: ${monster.attack}, 防御: ${monster.defense}, 素早さ: ${monster.agility}, HP: ${monster.hp}, SP: ${monster.sp}, Crt: ${monster.crt}`;
-        html += `
-          <tr>
-            <td style="border:1px solid #333; padding:10px; color:#000;">${slotLabel}</td>
-            <td style="border:1px solid #333; padding:10px; color:#000;">${escapeHtml(monster.name)}</td>
-            <td style="border:1px solid #333; padding:10px; text-align:right; color:#000;">${stats}</td>
-          </tr>
-        `;
-      } else {
-        html += `
-          <tr>
-            <td style="border:1px solid #333; padding:10px; color:#999;">${slotLabel}</td>
-            <td style="border:1px solid #333; padding:10px; color:#999;">未選択</td>
-            <td style="border:1px solid #333; padding:10px; text-align:right; color:#999;">-</td>
-          </tr>
-        `;
-      }
+    selectedMonsters.forEach(({ monster, slotIndex }) => {
+      const bonuses = getPassiveBonuses(party, slotIndex, monster);
+      html += `
+        <tr>
+          <th scope="row">${escapeHtml(monster.name)}</th>
+          <td>${escapeHtml(monster.race || '未設定')}</td>
+          <td>${escapeHtml(monster.element || '未設定')}</td>
+          <td>${escapeHtml(monster.passiveTarget.join('、') || 'なし')}</td>
+          ${PASSIVE_STATS.map(({ key }) => {
+            const individual = Number(monster[key]) || 0;
+            const bonus = bonuses[key];
+            return `<td><span class="passive-value-equation"><span>${individual}</span><span>+${bonus}</span><strong>${individual + bonus}</strong></span></td>`;
+          }).join('')}
+        </tr>
+      `;
     });
 
-    html += '</table></div>';
+    html += '</tbody></table></section>';
   });
 
   printable.innerHTML = html;
