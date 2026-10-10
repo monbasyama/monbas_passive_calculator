@@ -350,12 +350,19 @@ function resetMonsterForm() {
   renderPassiveEditor();
 }
 
-function generatePdfFromParties() {
+async function generatePdfFromParties() {
   if (window.html2pdf) {
     const element = document.createElement('div');
     element.style.padding = '18px';
     element.style.fontFamily = '\"Segoe UI\", \"Yu Gothic\", sans-serif';
     element.style.lineHeight = '1.6';
+    element.style.position = 'fixed';
+    element.style.top = '0';
+    element.style.left = '0';
+    element.style.zIndex = '-1';
+    element.style.width = '800px';
+    element.style.backgroundColor = '#fff';
+    element.style.color = '#111';
 
     let html = `
       <h1 style="text-align: center; margin-bottom: 20px;">Monbas Passive Calculator</h1>
@@ -413,7 +420,12 @@ function generatePdfFromParties() {
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    window.html2pdf().set(opt).from(element).save();
+    document.body.appendChild(element);
+    try {
+      await window.html2pdf().set(opt).from(element).save();
+    } finally {
+      element.remove();
+    }
     return;
   }
 
