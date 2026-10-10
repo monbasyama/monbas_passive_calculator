@@ -242,6 +242,11 @@ main {
   font-size: 1.06rem;
 }
 
+.party-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .party-total {
   display: inline-flex;
   align-items: center;
