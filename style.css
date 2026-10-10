@@ -289,10 +289,29 @@ main {
   padding-top: 10px;
 }
 
-.monster-detail strong {
-  display: inline-block;
-  margin-bottom: 6px;
-  font-size: 0.96rem;
+.monster-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.monster-passive-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.monster-passive-table th,
+.monster-passive-table td {
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+}
+
+.monster-passive-table th {
+  color: var(--primary-strong);
+  background: rgba(106, 169, 255, 0.12);
 }
 
 .monster-stats {
