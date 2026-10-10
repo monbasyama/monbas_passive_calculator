@@ -14,8 +14,6 @@ const LEGACY_SAMPLE_IDS = new Set([
   'monster-stone-giant',
   'monster-moon-cat'
 ]);
-const sampleMonsters = MONSTER_DATA;
-
 let monsters = [];
 let parties = [];
 
@@ -31,7 +29,7 @@ function createNewParty() {
 }
 
 function sanitizeMonsters(data) {
-  if (!Array.isArray(data) || data.length === 0) return [...sampleMonsters];
+  if (!Array.isArray(data) || data.length === 0) return [...MONSTER_DATA];
 
   const normalized = data
     .map((monster) => {
@@ -52,7 +50,7 @@ function sanitizeMonsters(data) {
     })
     .filter((monster) => monster && typeof monster.name === 'string');
 
-  return normalized.length ? normalized : [...sampleMonsters];
+  return normalized.length ? normalized : [...MONSTER_DATA];
 }
 
 function sanitizeParties(data) {
@@ -69,28 +67,28 @@ function sanitizeParties(data) {
 function loadMonsters() {
   const stored = localStorage.getItem(STORAGE_KEYS.monsters);
   if (!stored) {
-    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(sampleMonsters));
+    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(MONSTER_DATA));
     localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
-    return [...sampleMonsters];
+    return [...MONSTER_DATA];
   }
 
   try {
     const monstersFromStorage = sanitizeMonsters(JSON.parse(stored));
     if (localStorage.getItem(STORAGE_KEYS.monsterDataVersion) !== MONSTER_DATA_VERSION) {
-      const seedNames = new Set(sampleMonsters.map((monster) => monster.name));
+      const seedNames = new Set(MONSTER_DATA.map((monster) => monster.name));
       const existingCustomMonsters = monstersFromStorage.filter((monster) =>
         !LEGACY_SAMPLE_IDS.has(monster.id) && !seedNames.has(monster.name)
       );
-      const migratedMonsters = [...sampleMonsters, ...existingCustomMonsters];
+      const migratedMonsters = [...MONSTER_DATA, ...existingCustomMonsters];
       localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(migratedMonsters));
       localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
       return migratedMonsters;
     }
     return monstersFromStorage;
   } catch (error) {
-    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(sampleMonsters));
+    localStorage.setItem(STORAGE_KEYS.monsters, JSON.stringify(MONSTER_DATA));
     localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
-    return [...sampleMonsters];
+    return [...MONSTER_DATA];
   }
 }
 
