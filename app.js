@@ -53,7 +53,8 @@ function sanitizeMonsters(data) {
         agility: Number(monster.agility) || 0,
         hp: Number(monster.hp) || 0,
         sp: Number(monster.sp) || 0,
-        crt: Number(monster.crt) || 0
+        crt: Number(monster.crt) || 0,
+        wikiUrl: sanitizeWikiUrl(monster.wikiUrl)
       };
     })
     .filter((monster) => monster && typeof monster.name === 'string');
@@ -126,6 +127,17 @@ function saveParties() {
   localStorage.setItem(STORAGE_KEYS.parties, JSON.stringify(parties));
 }
 
+function sanitizeWikiUrl(value) {
+  if (typeof value !== 'string' || !value.trim()) return '';
+
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+  } catch (error) {
+    return '';
+  }
+}
+
 function getUi() {
   return {
     partyRoot: document.getElementById('parties-container'),
@@ -145,7 +157,8 @@ function getUi() {
     monsterAgilityInput: document.getElementById('monster-agility'),
     monsterHpInput: document.getElementById('monster-hp'),
     monsterSpInput: document.getElementById('monster-sp'),
-    monsterCrtInput: document.getElementById('monster-crt')
+    monsterCrtInput: document.getElementById('monster-crt'),
+    monsterWikiUrlInput: document.getElementById('monster-wiki-url')
   };
 }
 
@@ -225,6 +238,7 @@ function renderMonsterSearchResults() {
           <span>SP: ${monster.sp}</span>
           <span>Crt: ${monster.crt}</span>
         </div>
+        ${monster.wikiUrl ? `<a class="monster-wiki-link" href="${escapeHtml(monster.wikiUrl)}" target="_blank" rel="noopener noreferrer">Wikiリンク</a>` : ''}
       </div>
 
       <div class="monster-actions">
@@ -264,6 +278,8 @@ function renderMonsterSearchResults() {
       if (ui2.monsterHpInput) ui2.monsterHpInput.value = monster.hp;
       if (ui2.monsterSpInput) ui2.monsterSpInput.value = monster.sp;
       if (ui2.monsterCrtInput) ui2.monsterCrtInput.value = monster.crt;
+      if (ui2.monsterWikiUrlInput) ui2.monsterWikiUrlInput.value = monster.wikiUrl || '';
+      if (ui2.monsterWikiUrlInput) ui2.monsterWikiUrlInput.value = monster.wikiUrl || '';
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -322,23 +338,26 @@ function renderParties() {
             return `
               <div class="slot-card">
                 <label for="slot-${party.id}-${slotIndex}">${slotLabel}</label>
-                <div class="monster-dropdown-wrapper">
-                  <input 
-                    type="text" 
-                    class="monster-search-field"
-                    data-party-id="${party.id}" 
-                    data-slot-index="${slotIndex}"
-                    placeholder="モンスター名で検索..."
-                    value="${selectedMonster ? selectedMonster.name : ''}"
-                    autocomplete="off"
-                  />
-                  <div class="monster-dropdown-list" style="display: none;">
-                    ${monsters.map((monster) => `
-                      <div class="dropdown-item" data-monster-id="${monster.id}">
-                        ${escapeHtml(monster.name)}
-                      </div>
-                    `).join('')}
+                <div class="monster-selection-row">
+                  <div class="monster-dropdown-wrapper">
+                    <input 
+                      type="text" 
+                      class="monster-search-field"
+                      data-party-id="${party.id}" 
+                      data-slot-index="${slotIndex}"
+                      placeholder="モンスター名で検索..."
+                      value="${selectedMonster ? escapeHtml(selectedMonster.name) : ''}"
+                      autocomplete="off"
+                    />
+                    <div class="monster-dropdown-list" style="display: none;">
+                      ${monsters.map((monster) => `
+                        <div class="dropdown-item" data-monster-id="${monster.id}">
+                          ${escapeHtml(monster.name)}
+                        </div>
+                      `).join('')}
+                    </div>
                   </div>
+                  ${selectedMonster ? renderMonsterImage(selectedMonster) : ''}
                 </div>
 
                 ${selectedMonster ? `
@@ -413,7 +432,27 @@ function renderParties() {
     `;
   }).join('');
 
+  attachMonsterImageHandlers(partiesContainer);
   attachPartyEvents();
+}
+
+function renderMonsterImage(monster) {
+  const wikiUrl = sanitizeWikiUrl(monster.wikiUrl);
+  return `
+    <div class="monster-image-frame" aria-label="${escapeHtml(monster.name)}の画像">
+      <span class="monster-image-placeholder">NOIMAGE</span>
+      ${wikiUrl ? `<img class="monster-image" src="${escapeHtml(wikiUrl)}" alt="${escapeHtml(monster.name)}" />` : ''}
+    </div>
+  `;
+}
+
+function attachMonsterImageHandlers(root) {
+  root.querySelectorAll('.monster-image').forEach((image) => {
+    const frame = image.closest('.monster-image-frame');
+    image.addEventListener('load', () => frame.classList.add('has-image'));
+    image.addEventListener('error', () => frame.classList.remove('has-image'));
+    if (image.complete && image.naturalWidth > 0) frame.classList.add('has-image');
+  });
 }
 
 function attachPartyEvents() {
@@ -627,6 +666,7 @@ function initializeMonsterPage() {
       const hp = Number(ui.monsterHpInput ? ui.monsterHpInput.value : 0);
       const sp = Number(ui.monsterSpInput ? ui.monsterSpInput.value : 0);
       const crt = Number(ui.monsterCrtInput ? ui.monsterCrtInput.value : 0);
+      const wikiUrl = sanitizeWikiUrl(ui.monsterWikiUrlInput ? ui.monsterWikiUrlInput.value : '');
 
       if (!name) {
         alert('モンスター名を入力してください。');
@@ -656,6 +696,7 @@ function initializeMonsterPage() {
           targetMonster.hp = hp;
           targetMonster.sp = sp;
           targetMonster.crt = crt;
+          targetMonster.wikiUrl = wikiUrl;
         }
       } else {
         monsters.push({
@@ -669,7 +710,8 @@ function initializeMonsterPage() {
           agility,
           hp,
           sp,
-          crt
+          crt,
+          wikiUrl
         });
       }
 
