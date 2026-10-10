@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>モンスター管理 | Monbas Passive Calculator</title>
+    <title>モンスター管理 | ちょいと召喚モンスターバスケット</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body data-page="monster-manager">
     <div class="app-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">Monbas Passive Calculator</p>
+          <p class="eyebrow">ちょいと召喚モンスターバスケット</p>
           <h1>モンスター管理</h1>
         </div>
         <div class="topbar-actions">
@@ -29,18 +29,50 @@
               <input type="hidden" id="monster-id" />
 
               <div class="field-grid">
-                <div class="field-group full-width">
+                <div class="field-group">
                   <label for="monster-name">モンスター名</label>
                   <input id="monster-name" type="text" placeholder="例: 火竜" maxlength="50" required />
                 </div>
-              </div>
 
-              <div class="passives-block">
-                <div class="passives-header">
-                  <h3>パッシブ一覧</h3>
-                  <button type="button" id="add-passive-row-btn" class="ghost-btn">項目追加</button>
+                <div class="field-group">
+                  <label for="monster-race">種族</label>
+                  <input id="monster-race" type="text" placeholder="例: 神族" maxlength="30" />
                 </div>
-                <div id="passive-editor" class="passive-editor"></div>
+
+                <div class="field-group">
+                  <label for="monster-element">属性</label>
+                  <input id="monster-element" type="text" placeholder="例: 火" maxlength="20" />
+                </div>
+
+                <div class="field-group full-width">
+                  <label for="monster-passive-target">パッシブ対象</label>
+                  <input id="monster-passive-target" type="text" placeholder="例: 火＆水" maxlength="100" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-attack">攻撃力</label>
+                  <input id="monster-attack" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-agility">素早さ</label>
+                  <input id="monster-agility" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-hp">HP</label>
+                  <input id="monster-hp" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-sp">SP</label>
+                  <input id="monster-sp" type="number" placeholder="0" value="0" />
+                </div>
+
+                <div class="field-group">
+                  <label for="monster-crt">Crt</label>
+                  <input id="monster-crt" type="number" placeholder="0" value="0" />
+                </div>
               </div>
 
               <div class="form-actions">
