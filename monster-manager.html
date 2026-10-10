@@ -36,17 +36,67 @@
 
                 <div class="field-group">
                   <label for="monster-race">種族</label>
-                  <input id="monster-race" type="text" placeholder="例: 神族" maxlength="30" />
+                  <select id="monster-race" required>
+                    <option value="">選択してください</option>
+                    <option value="魔神">魔神</option>
+                    <option value="神族">神族</option>
+                    <option value="異端">異端</option>
+                    <option value="魔族">魔族</option>
+                    <option value="精霊">精霊</option>
+                    <option value="鬼族">鬼族</option>
+                    <option value="魔獣">魔獣</option>
+                    <option value="聖獣">聖獣</option>
+                    <option value="飛天">飛天</option>
+                    <option value="聖人">聖人</option>
+                  </select>
                 </div>
 
                 <div class="field-group">
                   <label for="monster-element">属性</label>
-                  <input id="monster-element" type="text" placeholder="例: 火" maxlength="20" />
+                  <select id="monster-element" required>
+                    <option value="">選択してください</option>
+                    <option value="闇">闇</option>
+                    <option value="火">火</option>
+                    <option value="水">水</option>
+                    <option value="風">風</option>
+                    <option value="雷">雷</option>
+                    <option value="無">無</option>
+                    <option value="光">光</option>
+                  </select>
                 </div>
 
                 <div class="field-group full-width">
-                  <label for="monster-passive-target">パッシブ対象</label>
-                  <input id="monster-passive-target" type="text" placeholder="例: 火＆水" maxlength="100" />
+                  <label>パッシブ対象（最低1つ選択必須）</label>
+                  <div class="checkbox-group">
+                    <div class="checkbox-section">
+                      <h4>種族</h4>
+                      <div class="checkbox-list">
+                        <label><input type="checkbox" name="passive-race" value="魔神"> 魔神</label>
+                        <label><input type="checkbox" name="passive-race" value="神族"> 神族</label>
+                        <label><input type="checkbox" name="passive-race" value="異端"> 異端</label>
+                        <label><input type="checkbox" name="passive-race" value="魔族"> 魔族</label>
+                        <label><input type="checkbox" name="passive-race" value="精霊"> 精霊</label>
+                        <label><input type="checkbox" name="passive-race" value="鬼族"> 鬼族</label>
+                        <label><input type="checkbox" name="passive-race" value="魔獣"> 魔獣</label>
+                        <label><input type="checkbox" name="passive-race" value="聖獣"> 聖獣</label>
+                        <label><input type="checkbox" name="passive-race" value="飛天"> 飛天</label>
+                        <label><input type="checkbox" name="passive-race" value="聖人"> 聖人</label>
+                      </div>
+                    </div>
+
+                    <div class="checkbox-section">
+                      <h4>属性</h4>
+                      <div class="checkbox-list">
+                        <label><input type="checkbox" name="passive-element" value="闇"> 闇</label>
+                        <label><input type="checkbox" name="passive-element" value="火"> 火</label>
+                        <label><input type="checkbox" name="passive-element" value="水"> 水</label>
+                        <label><input type="checkbox" name="passive-element" value="風"> 風</label>
+                        <label><input type="checkbox" name="passive-element" value="雷"> 雷</label>
+                        <label><input type="checkbox" name="passive-element" value="無"> 無</label>
+                        <label><input type="checkbox" name="passive-element" value="光"> 光</label>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="field-group">
