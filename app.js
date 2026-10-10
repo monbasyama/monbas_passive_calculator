@@ -279,7 +279,6 @@ function renderMonsterSearchResults() {
       if (ui2.monsterSpInput) ui2.monsterSpInput.value = monster.sp;
       if (ui2.monsterCrtInput) ui2.monsterCrtInput.value = monster.crt;
       if (ui2.monsterWikiUrlInput) ui2.monsterWikiUrlInput.value = monster.wikiUrl || '';
-      if (ui2.monsterWikiUrlInput) ui2.monsterWikiUrlInput.value = monster.wikiUrl || '';
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -340,10 +339,10 @@ function renderParties() {
                 <label for="slot-${party.id}-${slotIndex}">${slotLabel}</label>
                 <div class="monster-selection-row">
                   <div class="monster-dropdown-wrapper">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       class="monster-search-field"
-                      data-party-id="${party.id}" 
+                      data-party-id="${party.id}"
                       data-slot-index="${slotIndex}"
                       placeholder="モンスター名で検索..."
                       value="${selectedMonster ? escapeHtml(selectedMonster.name) : ''}"
