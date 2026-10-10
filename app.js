@@ -6,6 +6,14 @@ const STORAGE_KEYS = {
 
 const RACE_OPTIONS = ['魔神', '神族', '異端', '魔族', '精霊', '鬼族', '魔獣', '聖獣', '飛天', '聖人'];
 const ELEMENT_OPTIONS = ['闇', '火', '水', '風', '雷', '無', '光'];
+const PASSIVE_STATS = [
+  { key: 'attack', label: '攻撃力' },
+  { key: 'defense', label: '防御力' },
+  { key: 'agility', label: '素早さ' },
+  { key: 'hp', label: 'HP' },
+  { key: 'sp', label: 'SP' },
+  { key: 'crt', label: 'Crt' }
+];
 const MONSTER_DATA_VERSION = '2026-10-roster';
 const LEGACY_SAMPLE_IDS = new Set([
   'monster-fire-dragon',
@@ -154,6 +162,32 @@ function calculatePartyTotal(party) {
   }, 0);
 }
 
+function getPassiveBonuses(party, targetSlotIndex, targetMonster) {
+  const bonuses = Object.fromEntries(PASSIVE_STATS.map(({ key }) => [key, 0]));
+  const sources = [];
+
+  party.slots.forEach((sourceId, sourceSlotIndex) => {
+    if (!sourceId || sourceSlotIndex === targetSlotIndex) return;
+
+    const sourceMonster = monsters.find((monster) => monster.id === sourceId);
+    if (!sourceMonster) return;
+
+    const matchesRace = sourceMonster.passiveTarget.includes(targetMonster.race);
+    const matchesElement = sourceMonster.passiveTarget.includes(targetMonster.element);
+    if (!matchesRace && !matchesElement) return;
+
+    PASSIVE_STATS.forEach(({ key }) => {
+      bonuses[key] += Number(sourceMonster[key]) || 0;
+    });
+    sources.push({
+      name: sourceMonster.name,
+      matches: [matchesRace && '種族', matchesElement && '属性'].filter(Boolean)
+    });
+  });
+
+  return { bonuses, sources };
+}
+
 function searchMonsters(query) {
   const lowerQuery = query.toLowerCase().trim();
 
@@ -167,6 +201,11 @@ function renderMonsterSearchResults() {
   if (!ui.monsterSearchInput || !ui.monsterSearchResults) return;
 
   const query = ui.monsterSearchInput.value;
+  if (!query.trim()) {
+    ui.monsterSearchResults.innerHTML = '';
+    return;
+  }
+
   const results = searchMonsters(query);
 
   if (results.length === 0) {
@@ -263,6 +302,12 @@ function renderParties() {
 
   ui.partyRoot.innerHTML = parties.map((party, partyIndex) => {
     const partyTotal = calculatePartyTotal(party);
+    const selectedMonsters = party.slots
+      .map((monsterId, slotIndex) => ({
+        monster: monsters.find((item) => item.id === monsterId),
+        slotIndex
+      }))
+      .filter(({ monster }) => monster);
 
     return `
       <article class="party-card" data-party-id="${party.id}">
@@ -318,6 +363,58 @@ function renderParties() {
             `;
           }).join('')}
         </div>
+
+        ${selectedMonsters.length ? `
+          <section class="party-passive-summary" aria-label="選択モンスターのパッシブ反映一覧">
+            <h4>選択モンスターのパッシブ反映一覧</h4>
+            <p class="passive-summary-hint">個別値 + 他のモンスターからの上乗せ = 反映後</p>
+            <div class="passive-summary-table-wrap">
+              <table class="passive-summary-table">
+                <thead>
+                  <tr>
+                    <th scope="col">モンスター</th>
+                    <th scope="col">種族 / 属性・反映元</th>
+                    ${PASSIVE_STATS.map(({ label }) => `<th scope="col">${label}</th>`).join('')}
+                  </tr>
+                </thead>
+                <tbody>
+                  ${selectedMonsters.map(({ monster, slotIndex }) => {
+                    const { bonuses, sources } = getPassiveBonuses(party, slotIndex, monster);
+                    const slotLabel = slotIndex < 5 ? `モンスター ${slotIndex + 1}` : '助っ人';
+
+                    return `
+                      <tr>
+                        <th scope="row">
+                          <span class="summary-slot-label">${slotLabel}</span>
+                          <strong>${escapeHtml(monster.name)}</strong>
+                        </th>
+                        <td>
+                          <span>種族: ${escapeHtml(monster.race || '未設定')}</span>
+                          <span>属性: ${escapeHtml(monster.element || '未設定')}</span>
+                          <span class="summary-passive-target">パッシブ対象: ${escapeHtml(monster.passiveTarget.join('、') || 'なし')}</span>
+                          <span class="summary-passive-sources">反映元: ${sources.length ? sources.map(({ name, matches }) => `${escapeHtml(name)}（${matches.join('・')}）`).join('、') : 'なし'}</span>
+                        </td>
+                        ${PASSIVE_STATS.map(({ key }) => {
+                          const individual = Number(monster[key]) || 0;
+                          const bonus = bonuses[key];
+                          return `
+                            <td>
+                              <span class="passive-value-equation">
+                                <span>${individual}</span>
+                                <span class="passive-value-bonus">+${bonus}</span>
+                                <strong>${individual + bonus}</strong>
+                              </span>
+                            </td>
+                          `;
+                        }).join('')}
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ` : ''}
       </article>
     `;
   }).join('');
