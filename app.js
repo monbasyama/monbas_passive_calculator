@@ -687,8 +687,26 @@ function showPartyComparison() {
   const content = document.createElement('div');
   content.className = 'pdf-print-content';
   content.style.display = 'block';
+  content.style.padding = '2px';
+  content.style.overflowX = 'auto';
   content.innerHTML = buildPartyReportHtml();
-  overlay.append(closeBtn, content);
+  content.querySelectorAll('.pdf-summary-table').forEach((table) => {
+    table.style.minWidth = '640px';
+    table.style.fontSize = '9px';
+    table.querySelectorAll('.passive-value-cell').forEach((cell) => { cell.style.fontSize = '9px'; });
+  });
+  const pdfBtn = document.createElement('button');
+  pdfBtn.type = 'button';
+  pdfBtn.className = 'primary-btn';
+  pdfBtn.textContent = 'PDF出力';
+  pdfBtn.style.cssText = 'position:sticky;top:8px;margin:8px 8px 8px 0;z-index:1;cursor:pointer;';
+  pdfBtn.addEventListener('click', generatePdfFromParties);
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex;align-items:center;position:sticky;top:0;z-index:1;background:#fff;';
+  closeBtn.style.position = 'static';
+  pdfBtn.style.position = 'static';
+  toolbar.append(closeBtn, pdfBtn);
+  overlay.append(toolbar, content);
   document.body.appendChild(overlay);
 }
 
