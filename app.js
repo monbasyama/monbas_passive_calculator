@@ -616,7 +616,8 @@ function generatePdfFromParties() {
       .pdf-summary-table .monster-image-cell { width: 20px; padding: 1px; text-align: center; }
       .pdf-summary-table .monster-image { position: static; inset: auto; display: block; width: 18px; height: 18px; margin: auto; object-fit: contain; }
       .pdf-summary-table th[scope="row"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .pdf-summary-table .passive-value-equation { display: flex; justify-content: center; gap: 2px; white-space: nowrap; font-size: 6.5px; }
+      .pdf-summary-table .passive-value-equation { display: flex; justify-content: center; gap: 1px; width: 100%; min-width: 0; white-space: normal; font-size: 6px; }
+      .pdf-summary-table .passive-value-equation > * { min-width: 0; overflow-wrap: anywhere; }
       .pdf-summary-table .passive-value-individual { color: #374151; }
       .pdf-summary-table .passive-value-bonus { color: #006b5b; }
       .pdf-summary-table .passive-value-total { color: #173f8a; font-weight: 700; }
