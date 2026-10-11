@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>モンスター検索 | ちょいと召喚モンスターバスケット</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body data-page="monster-search">
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">ちょいと召喚モンスターバスケット</p>
+          <h1>モンスター検索</h1>
+        </div>
+        <div class="topbar-actions">
+          <a href="index.html" class="secondary-btn inline-link">パーティー画面へ戻る</a>
+          <a href="how-to-use.html" class="secondary-btn inline-link">使い方</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel active-panel">
+          <form id="monster-catalog-filter-form" class="monster-form-card">
+            <div class="field-grid">
+              <div class="field-group">
+                <label for="catalog-name-filter">モンスター名</label>
+                <input id="catalog-name-filter" type="search" maxlength="50" placeholder="名前の一部を入力..." />
+              </div>
+
+              <div class="catalog-filter-groups">
+                <fieldset class="catalog-filter-group">
+                  <legend>種族</legend>
+                  <div class="catalog-filter-options">
+                    <label><input class="catalog-race-filter" type="checkbox" value="魔神" /> 魔神</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="神族" /> 神族</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="異端" /> 異端</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="魔族" /> 魔族</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="精霊" /> 精霊</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="鬼族" /> 鬼族</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="魔獣" /> 魔獣</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="聖獣" /> 聖獣</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="飛天" /> 飛天</label>
+                    <label><input class="catalog-race-filter" type="checkbox" value="聖人" /> 聖人</label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="catalog-filter-group">
+                  <legend>属性</legend>
+                  <div class="catalog-filter-options">
+                    <label><input class="catalog-element-filter" type="checkbox" value="闇" /> 闇</label>
+                    <label><input class="catalog-element-filter" type="checkbox" value="火" /> 火</label>
+                    <label><input class="catalog-element-filter" type="checkbox" value="水" /> 水</label>
+                    <label><input class="catalog-element-filter" type="checkbox" value="風" /> 風</label>
+                    <label><input class="catalog-element-filter" type="checkbox" value="雷" /> 雷</label>
+                    <label><input class="catalog-element-filter" type="checkbox" value="無" /> 無</label>
+                    <label><input class="catalog-element-filter" type="checkbox" value="光" /> 光</label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="catalog-filter-group">
+                  <legend>パッシブ対象：種族</legend>
+                  <div class="catalog-filter-options">
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="魔神" /> 魔神</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="神族" /> 神族</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="異端" /> 異端</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="魔族" /> 魔族</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="精霊" /> 精霊</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="鬼族" /> 鬼族</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="魔獣" /> 魔獣</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="聖獣" /> 聖獣</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="飛天" /> 飛天</label>
+                    <label><input class="catalog-passive-race-filter" type="checkbox" value="聖人" /> 聖人</label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="catalog-filter-group">
+                  <legend>パッシブ対象：属性</legend>
+                  <div class="catalog-filter-options">
+                    <label><input class="catalog-passive-element-filter" type="checkbox" value="闇" /> 闇</label>
+                    <label><input class="catalog-passive-element-filter" type="checkbox" value="火" /> 火</label>
+                    <label><input class="catalog-passive-element-filter" type="checkbox" value="水" /> 水</label>
+                    <label><input class="catalog-passive-element-filter" type="checkbox" value="風" /> 風</label>
+                    <label><input class="catalog-passive-element-filter" type="checkbox" value="雷" /> 雷</label>
+                    <label><input class="catalog-passive-element-filter" type="checkbox" value="無" /> 無</label>
+                    <label><input class="catalog-passive-element-filter" type="checkbox" value="光" /> 光</label>
+                  </div>
+                </fieldset>
+              </div>
+
+              <fieldset class="catalog-filter-group full-width">
+                <legend>能力値の範囲</legend>
+                <div class="catalog-range-grid">
+                  <div class="field-group">
+                    <label for="catalog-attack-min">攻撃力</label>
+                    <div class="catalog-range-inputs">
+                      <input id="catalog-attack-min" type="number" data-stat="attack" data-bound="min" placeholder="下限" />
+                      <span>〜</span>
+                      <input type="number" data-stat="attack" data-bound="max" aria-label="攻撃力の上限" placeholder="上限" />
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="catalog-defense-min">防御力</label>
+                    <div class="catalog-range-inputs">
+                      <input id="catalog-defense-min" type="number" data-stat="defense" data-bound="min" placeholder="下限" />
+                      <span>〜</span>
+                      <input type="number" data-stat="defense" data-bound="max" aria-label="防御力の上限" placeholder="上限" />
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="catalog-agility-min">素早さ</label>
+                    <div class="catalog-range-inputs">
+                      <input id="catalog-agility-min" type="number" data-stat="agility" data-bound="min" placeholder="下限" />
+                      <span>〜</span>
+                      <input type="number" data-stat="agility" data-bound="max" aria-label="素早さの上限" placeholder="上限" />
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="catalog-hp-min">HP</label>
+                    <div class="catalog-range-inputs">
+                      <input id="catalog-hp-min" type="number" data-stat="hp" data-bound="min" placeholder="下限" />
+                      <span>〜</span>
+                      <input type="number" data-stat="hp" data-bound="max" aria-label="HPの上限" placeholder="上限" />
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="catalog-sp-min">SP</label>
+                    <div class="catalog-range-inputs">
+                      <input id="catalog-sp-min" type="number" data-stat="sp" data-bound="min" placeholder="下限" />
+                      <span>〜</span>
+                      <input type="number" data-stat="sp" data-bound="max" aria-label="SPの上限" placeholder="上限" />
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label for="catalog-crt-min">Crt</label>
+                    <div class="catalog-range-inputs">
+                      <input id="catalog-crt-min" type="number" data-stat="crt" data-bound="min" placeholder="下限" />
+                      <span>〜</span>
+                      <input type="number" data-stat="crt" data-bound="max" aria-label="Crtの上限" placeholder="上限" />
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="form-actions">
+              <button id="catalog-filter-reset" type="button" class="secondary-btn">条件をクリア</button>
+            </div>
+          </form>
+
+          <p id="monster-catalog-result-count" class="catalog-result-count" aria-live="polite"></p>
+          <div class="monster-catalog-table-wrap">
+            <table class="monster-catalog-table">
+              <thead>
+                <tr>
+                  <th scope="col">画像</th>
+                  <th scope="col">モンスター名</th>
+                  <th scope="col">種族</th>
+                  <th scope="col">属性</th>
+                  <th scope="col">パッシブ対象</th>
+                  <th scope="col">攻撃力</th>
+                  <th scope="col">防御力</th>
+                  <th scope="col">素早さ</th>
+                  <th scope="col">HP</th>
+                  <th scope="col">SP</th>
+                  <th scope="col">Crt</th>
+                </tr>
+              </thead>
+              <tbody id="monster-catalog-results"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="monster.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

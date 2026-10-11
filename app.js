@@ -746,6 +746,85 @@ function initializePartyPage() {
   }
 }
 
+function initializeMonsterCatalogPage() {
+  monsters = loadMonsters();
+  const filterForm = document.getElementById('monster-catalog-filter-form');
+  const resetButton = document.getElementById('catalog-filter-reset');
+
+  if (filterForm) {
+    filterForm.addEventListener('input', renderMonsterCatalogResults);
+    filterForm.addEventListener('change', renderMonsterCatalogResults);
+  }
+
+  if (resetButton && filterForm) {
+    resetButton.addEventListener('click', () => {
+      filterForm.reset();
+      renderMonsterCatalogResults();
+    });
+  }
+
+  renderMonsterCatalogResults();
+}
+
+function renderMonsterCatalogResults() {
+  const filterForm = document.getElementById('monster-catalog-filter-form');
+  const results = document.getElementById('monster-catalog-results');
+  const resultCount = document.getElementById('monster-catalog-result-count');
+  if (!filterForm || !results || !resultCount) return;
+
+  const nameQuery = document.getElementById('catalog-name-filter').value.trim().toLocaleLowerCase();
+  const checkedValues = (selector) => Array.from(filterForm.querySelectorAll(`${selector}:checked`), (input) => input.value);
+  const races = checkedValues('.catalog-race-filter');
+  const elements = checkedValues('.catalog-element-filter');
+  const passiveRaces = checkedValues('.catalog-passive-race-filter');
+  const passiveElements = checkedValues('.catalog-passive-element-filter');
+  const ranges = PASSIVE_STATS.reduce((filterRanges, { key }) => {
+    filterRanges[key] = {};
+    ['min', 'max'].forEach((bound) => {
+      const input = filterForm.querySelector(`[data-stat="${key}"][data-bound="${bound}"]`);
+      filterRanges[key][bound] = input.value === '' ? null : Number(input.value);
+    });
+    return filterRanges;
+  }, {});
+
+  const filteredMonsters = monsters.filter((monster) => {
+    const nameMatches = monster.name.toLocaleLowerCase().includes(nameQuery);
+    const raceMatches = !races.length || races.includes(monster.race);
+    const elementMatches = !elements.length || elements.includes(monster.element);
+    const passiveRaceMatches = !passiveRaces.length || passiveRaces.some((target) => monster.passiveTarget.includes(target));
+    const passiveElementMatches = !passiveElements.length || passiveElements.some((target) => monster.passiveTarget.includes(target));
+    const statsMatch = PASSIVE_STATS.every(({ key }) => {
+      const value = Number(monster[key]) || 0;
+      const { min, max } = ranges[key];
+      return (min === null || value >= min) && (max === null || value <= max);
+    });
+
+    return nameMatches && raceMatches && elementMatches && passiveRaceMatches && passiveElementMatches && statsMatch;
+  });
+
+  resultCount.textContent = `${filteredMonsters.length} / ${monsters.length} 件`;
+  results.innerHTML = filteredMonsters.length
+    ? filteredMonsters.map((monster) => {
+      const image = monster.imageUrl
+        ? `<img class="catalog-monster-image" src="${escapeHtml(monster.imageUrl)}" alt="${escapeHtml(monster.name)}" loading="lazy">`
+        : '<span class="catalog-no-image">画像なし</span>';
+      const linkedImage = monster.imageUrl && monster.wikiUrl
+        ? `<a href="${escapeHtml(monster.wikiUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(monster.name)}のWikiを開く">${image}</a>`
+        : image;
+      return `
+        <tr>
+          <td>${linkedImage}</td>
+          <th scope="row">${escapeHtml(monster.name)}</th>
+          <td>${escapeHtml(monster.race || '未設定')}</td>
+          <td>${escapeHtml(monster.element || '未設定')}</td>
+          <td>${escapeHtml(monster.passiveTarget.join('、') || 'なし')}</td>
+          ${PASSIVE_STATS.map(({ key }) => `<td>${Number(monster[key]) || 0}</td>`).join('')}
+        </tr>
+      `;
+    }).join('')
+    : '<tr><td class="catalog-empty-state" colspan="11">条件に一致するモンスターがいません。</td></tr>';
+}
+
 function initializeMonsterPage() {
   if (!authorizeMonsterManagerPage()) return;
 
@@ -852,6 +931,7 @@ function initializeMonsterPage() {
 function startApp() {
   const isPartyPage = !!document.getElementById('parties-container');
   const isMonsterPage = !!document.getElementById('monster-search-input');
+  const isMonsterCatalogPage = !!document.getElementById('monster-catalog-filter-form');
 
   if (isPartyPage) {
     initializePartyPage();
@@ -859,6 +939,10 @@ function startApp() {
 
   if (isMonsterPage) {
     initializeMonsterPage();
+  }
+
+  if (isMonsterCatalogPage) {
+    initializeMonsterCatalogPage();
   }
 }
 
