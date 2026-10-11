@@ -373,7 +373,10 @@ function renderParties() {
 
             return `
               <div class="slot-card">
-                <label for="slot-${party.id}-${slotIndex}">${slotLabel}</label>
+                <div class="slot-heading">
+                  <label for="slot-${party.id}-${slotIndex}">${slotLabel}</label>
+                  ${selectedMonster ? renderMonsterImage(selectedMonster) : ''}
+                </div>
                 <div class="monster-selection-row">
                   <div class="monster-dropdown-wrapper">
                     <input
@@ -480,7 +483,7 @@ function renderMonsterImage(monster) {
   const imageUrl = sanitizeUrl(monster.imageUrl);
   const frame = `
     <div class="monster-image-frame" aria-label="${escapeHtml(monster.name)}の画像">
-      <span class="monster-image-placeholder">${imageUrl ? '' : 'NOIMAGE'}</span>
+      <span class="monster-image-placeholder">NOIMAGE</span>
       ${imageUrl ? `<img class="monster-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(monster.name)}" />` : ''}
     </div>
   `;
