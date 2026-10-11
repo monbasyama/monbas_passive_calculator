@@ -386,14 +386,17 @@ function renderParties() {
                       autocomplete="off"
                     />
                     <div class="monster-dropdown-list" style="display: none;">
-                      ${monsters.map((monster) => `
-                        <div class="dropdown-item" data-monster-id="${monster.id}">
-                          ${escapeHtml(monster.name)}
-                        </div>
-                      `).join('')}
+                      ${monsters.map((monster) => {
+                        const imageUrl = sanitizeUrl(monster.imageUrl);
+                        return `
+                          <div class="dropdown-item" data-monster-id="${escapeHtml(monster.id)}">
+                            ${imageUrl ? `<img class="dropdown-monster-image" src="${escapeHtml(imageUrl)}" alt="" aria-hidden="true" />` : ''}
+                            <span>${escapeHtml(monster.name)}</span>
+                          </div>
+                        `;
+                      }).join('')}
                     </div>
                   </div>
-                  ${selectedMonster ? renderMonsterImage(selectedMonster) : ''}
                 </div>
 
                 ${selectedMonster ? `
@@ -543,7 +546,7 @@ function attachPartyEvents() {
       items.forEach((item) => {
         const monsterName = normalizeSearchText(item.textContent);
         if (monsterName.includes(query) || !query) {
-          item.style.display = 'block';
+          item.style.display = 'flex';
         } else {
           item.style.display = 'none';
         }
@@ -562,7 +565,8 @@ function attachPartyEvents() {
 
   document.querySelectorAll('.dropdown-item').forEach((item) => {
     item.addEventListener('click', (event) => {
-      const monsterId = event.target.dataset.monsterId;
+      const dropdownItem = event.target.closest('.dropdown-item');
+      const monsterId = dropdownItem.dataset.monsterId;
       const searchField = event.target.closest('.monster-dropdown-wrapper').querySelector('.monster-search-field');
       const partyId = searchField.dataset.partyId;
       const slotIndex = Number(searchField.dataset.slotIndex);
