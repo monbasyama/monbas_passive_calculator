@@ -108,6 +108,34 @@ h1 {
   flex-wrap: wrap;
 }
 
+.utility-sidebar {
+  position: fixed;
+  z-index: 10;
+  left: 12px;
+  bottom: 18px;
+  padding: 8px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 10px;
+  background: rgba(10, 16, 32, 0.55);
+  opacity: 0.55;
+  transition: opacity 0.18s ease;
+}
+
+.utility-sidebar:hover,
+.utility-sidebar:focus-within {
+  opacity: 1;
+}
+
+.utility-sidebar a {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.utility-sidebar a:hover {
+  color: var(--text);
+}
+
 .inline-link {
   display: inline-flex;
   align-items: center;
@@ -161,6 +189,10 @@ h1 {
 
 main {
   display: block;
+}
+
+body[data-page="monster-manager"]:not(.manager-authorized) {
+  visibility: hidden;
 }
 
 .panel {
@@ -726,7 +758,31 @@ select {
   display: none;
 }
 
+.usage-guide section + section {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.usage-guide h2 {
+  color: var(--primary-strong);
+}
+
+.usage-guide p,
+.usage-guide li {
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.usage-guide li + li {
+  margin-top: 8px;
+}
+
 @media print {
+  @page {
+    margin: 0;
+  }
+
   body {
     background: #fff !important;
   }
@@ -764,6 +820,11 @@ select {
   .form-actions > *,
   .monster-actions > * {
     flex: 1 1 auto;
+  }
+
+  .utility-sidebar {
+    right: 12px;
+    left: auto;
   }
 
   .slot-grid {
