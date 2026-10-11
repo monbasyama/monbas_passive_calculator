@@ -416,6 +416,7 @@ body[data-page="monster-manager"]:not(.manager-authorized) {
 }
 
 input[type="text"],
+input[type="search"],
 input[type="number"],
 select {
   width: 100%;
@@ -624,6 +625,116 @@ select {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
+}
+
+.catalog-filter-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.catalog-filter-group {
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(10, 16, 32, 0.5);
+}
+
+.catalog-filter-group legend {
+  padding: 0 6px;
+  color: var(--primary-strong);
+  font-weight: 700;
+}
+
+.catalog-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.catalog-filter-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.catalog-filter-options input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.catalog-range-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.catalog-range-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.catalog-result-count {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.monster-catalog-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.monster-catalog-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  background: rgba(17, 25, 39, 0.78);
+}
+
+.monster-catalog-table th,
+.monster-catalog-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.monster-catalog-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--panel-strong);
+  color: var(--primary-strong);
+}
+
+.monster-catalog-table tbody th {
+  color: var(--text);
+}
+
+.catalog-monster-image {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.catalog-no-image {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.catalog-empty-state {
+  padding: 28px !important;
+  color: var(--muted);
+  text-align: center !important;
 }
 
 .monster-list-wrap {
