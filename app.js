@@ -157,6 +157,7 @@ function getUi() {
     monsterSearchInput: document.getElementById('monster-search-input'),
     monsterSearchResults: document.getElementById('monster-search-results'),
     addPartyBtn: document.getElementById('add-party-btn'),
+    compareBtn: document.getElementById('party-compare-btn'),
     pdfExportBtn: document.getElementById('pdf-export-btn'),
     newMonsterBtn: document.getElementById('new-monster-btn'),
     cancelMonsterEditBtn: document.getElementById('cancel-monster-edit'),
@@ -599,10 +600,7 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
-function generatePdfFromParties() {
-  const printable = document.createElement('div');
-  printable.className = 'pdf-print-content';
-
+function buildPartyReportHtml() {
   let html = `
     <style>
       .pdf-print-content { padding: 6mm; color: #000; background: #fff; font-family: "Segoe UI", "Yu Gothic", sans-serif; }
@@ -671,7 +669,32 @@ function generatePdfFromParties() {
     html += '</tbody></table></section>';
   });
 
-  printable.innerHTML = html;
+  return html;
+}
+
+function showPartyComparison() {
+  const existing = document.getElementById('party-compare-overlay');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'party-compare-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:1000;overflow:auto;background:#fff;';
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'secondary-btn';
+  closeBtn.textContent = '閉じる';
+  closeBtn.style.cssText = 'position:sticky;top:8px;left:8px;margin:8px;z-index:1;';
+  closeBtn.addEventListener('click', () => overlay.remove());
+  const content = document.createElement('div');
+  content.className = 'pdf-print-content';
+  content.innerHTML = buildPartyReportHtml();
+  overlay.append(closeBtn, content);
+  document.body.appendChild(overlay);
+}
+
+function generatePdfFromParties() {
+  const printable = document.createElement('div');
+  printable.className = 'pdf-print-content';
+  printable.innerHTML = buildPartyReportHtml();
   document.body.appendChild(printable);
   window.addEventListener('afterprint', () => printable.remove(), { once: true });
   window.print();
@@ -689,6 +712,10 @@ function initializePartyPage() {
       saveParties();
       renderParties();
     });
+  }
+
+  if (ui.compareBtn) {
+    ui.compareBtn.addEventListener('click', showPartyComparison);
   }
 
   if (ui.pdfExportBtn) {
