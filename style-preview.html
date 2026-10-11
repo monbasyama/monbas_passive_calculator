@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>スタイルプレビュー | ちょいと召喚モンスターバスケット</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .preview-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-selector button {
+            padding: 12px 24px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .theme-selector button.active {
+            border-color: #4da6ff;
+            background: #e8f0ff;
+            color: #0066cc;
+        }
+
+        .theme-selector button:hover {
+            border-color: #999;
+            background: #f9f9f9;
+        }
+
+        .preview-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+
+        .preview-section.active {
+            display: block;
+        }
+
+        .theme-label {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .preview-frame {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: white;
+        }
+
+        .preview-frame.full {
+            grid-column: 1 / -1;
+        }
+
+        .app-preview {
+            padding: 0;
+            min-height: 600px;
+        }
+
+        /* ===== スタイル案A: パステルカラー ===== */
+        .theme-a {
+            --bg-1: #faf8f3;
+            --bg-2: #f5f1e8;
+            --panel: rgba(255, 250, 245, 0.95);
+            --panel-strong: rgba(255, 248, 240, 0.98);
+            --line: rgba(200, 180, 160, 0.3);
+            --line-strong: rgba(180, 150, 130, 0.4);
+            --text: #3a3a3a;
+            --muted: #7a7a7a;
+            --primary: #ff9fb8;
+            --primary-strong: #ff7fa8;
+            --secondary: #87d4e8;
+            --accent: #ffc966;
+            --success: #a8d582;
+        }
+
+        /* ===== スタイル案B: 爽やかな白×明るい青 ===== */
+        .theme-b {
+            --bg-1: #ffffff;
+            --bg-2: #f0f7ff;
+            --panel: rgba(255, 255, 255, 0.98);
+            --panel-strong: rgba(248, 252, 255, 0.99);
+            --line: rgba(100, 150, 200, 0.25);
+            --line-strong: rgba(100, 150, 200, 0.35);
+            --text: #2c3e50;
+            --muted: #666b8f;
+            --primary: #4da6ff;
+            --primary-strong: #2e7fd9;
+            --secondary: #7c5cff;
+            --accent: #e8d5ff;
+            --success: #66d9a3;
+        }
+
+        /* ===== スタイル案C: ウォームトーン + 和風 ===== */
+        .theme-c {
+            --bg-1: #fffbf0;
+            --bg-2: #fff8e6;
+            --panel: rgba(255, 252, 248, 0.96);
+            --panel-strong: rgba(255, 250, 245, 0.98);
+            --line: rgba(220, 150, 120, 0.3);
+            --line-strong: rgba(200, 130, 100, 0.4);
+            --text: #4a4a4a;
+            --muted: #8a7a6a;
+            --primary: #f4a6c1;
+            --primary-strong: #e8869a;
+            --secondary: #c8e6c9;
+            --accent: #fff4a3;
+            --success: #c8e6c9;
+        }
+
+        .theme-preview {
+            background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+            color: var(--text);
+            padding: 30px;
+            min-height: 100%;
+        }
+
+        .topbar-preview {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+            padding: 20px;
+            border: 1px solid var(--line-strong);
+            background: var(--panel);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .topbar-title h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .topbar-actions-preview {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-preview {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--primary-strong);
+            border: 1.5px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .panel-preview {
+            background: var(--panel);
+            border: 1px solid var(--line-strong);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 16px 0;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-preview {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.05));
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--muted);
+        }
+
+        .card-preview h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .card-preview p {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .tag-preview {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary-strong);
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .summary-preview {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.05));
+            border: 1px solid var(--line-strong);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary-strong);
+        }
+
+        .color-swatch-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+        }
+
+        .color-swatch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .color-box {
+            width: 100%;
+            height: 80px;
+            border-radius: 8px;
+            border: 1px solid var(--line-strong);
+        }
+
+        .color-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .theme-description {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.02);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar-preview {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .topbar-actions-preview {
+                width: 100%;
+            }
+
+            .btn-preview {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <h1>🎨 スタイルプレビュー - 3つのデザイン案</h1>
+        
+        <div class="theme-selector">
+            <button class="active" onclick="switchTheme('a')">
+                案A: パステルカラー
+            </button>
+            <button onclick="switchTheme('b')">
+                案B: 爽やかな白×青
+            </button>
+            <button onclick="switchTheme('c')">
+                案C: ウォームトーン和風
+            </button>
+        </div>
+
+        <!-- 案A: パステルカラー -->
+        <div id="theme-a" class="preview-section active">
+            <div class="theme-label">案A: パステルカラー + 柔らかいグラデーション</div>
+            <div class="theme-description">
+                背景：淡いクリーム色 + 柔らかい虹色グラデーション | 
+                アクセント：ピンク・青・緑のパステル | 
+                テキスト：濃いグレー | 
+                フォント例：Outfit, Inter, Hiragino Maru Gothic
+            </div>
+
+            <div class="preview-frame app-preview">
+                <div class="theme-preview theme-a">
+                    <div class="topbar-preview">
+                        <div class="topbar-title">
+                            <h1>パッシブ比較・パーティー作成アプリ</h1>
+                        </div>
+                        <div class="topbar-actions-preview">
+                            <button class="btn-preview btn-secondary">📋 使い方</button>
+                            <button class="btn-preview btn-secondary">⚖️ 比較</button>
+                            <button class="btn-preview btn-primary">📥 PDF出力</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-preview">
+                        <h2 class="section-title">パーティー一覧</h2>
+                        
+                        <div class="summary-preview">
+                            <div class="summary-label">パッシブ合計</div>
+                            <div class="summary-value">+1850</div>
+                        </div>
+
+                        <div class="card-grid">
+                            <div class="card-preview">
+                                <h3>🎭 パーティー1</h3>
+                                <p>メンバー: 4体 | パッシブ: +850</p>
+                                <div style="margin-top: 10px;">
+                                    <span class="tag-preview">魔神</span>
+                                    <span class="tag-preview">神族</span>
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px;">✏️ 編集</button>
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px; margin-left: 4px;">🗑️ 削除</button>
+                                </div>
+                            </div>
+
+                            <div class="card-preview">
+                                <h3>🎭 パーティー2</h3>
+                                <p>メンバー: 4体 | パッシブ: +1000</p>
+                                <div style="margin-top: 10px;">
+                                    <span class="tag-preview">精霊</span>
+                                    <span class="tag-preview">鬼族</span>
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px;">✏️ 編集</button>
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px; margin-left: 4px;">🗑️ 削除</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 16px;">
+                            <button class="btn-preview btn-primary">➕ パーティー追加</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-preview" style="margin-top: 20px;">
+                        <h2 class="section-title">カラーパレット</h2>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #faf8f3; border: 2px solid #ddd;"></div>
+                                <div class="color-label">背景1<br>#faf8f3</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #ff9fb8;"></div>
+                                <div class="color-label">Primary<br>#ff9fb8</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #87d4e8;"></div>
+                                <div class="color-label">Secondary<br>#87d4e8</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #ffc966;"></div>
+                                <div class="color-label">Accent<br>#ffc966</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #a8d582;"></div>
+                                <div class="color-label">Success<br>#a8d582</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 案B: 爽やかな白×明るい青 -->
+        <div id="theme-b" class="preview-section">
+            <div class="theme-label">案B: 爽やかな白×明るい青グラデーション</div>
+            <div class="theme-description">
+                背景：白背景 + 淡い青グラデーション | 
+                アクセント：明るい青・青紫・薄紫 | 
+                テキスト：深紺 | 
+                フォント例：Inter, Poppins, Yu Gothic
+            </div>
+
+            <div class="preview-frame app-preview">
+                <div class="theme-preview theme-b">
+                    <div class="topbar-preview">
+                        <div class="topbar-title">
+                            <h1>パッシブ比較・パーティー作成アプリ</h1>
+                        </div>
+                        <div class="topbar-actions-preview">
+                            <button class="btn-preview btn-secondary">📋 使い方</button>
+                            <button class="btn-preview btn-secondary">⚖️ 比較</button>
+                            <button class="btn-preview btn-primary">📥 PDF出力</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-preview">
+                        <h2 class="section-title">パーティー一覧</h2>
+                        
+                        <div class="summary-preview">
+                            <div class="summary-label">パッシブ合計</div>
+                            <div class="summary-value">+1850</div>
+                        </div>
+
+                        <div class="card-grid">
+                            <div class="card-preview">
+                                <h3>🎭 パーティー1</h3>
+                                <p>メンバー: 4体 | パッシブ: +850</p>
+                                <div style="margin-top: 10px;">
+                                    <span class="tag-preview">魔神</span>
+                                    <span class="tag-preview">神族</span>
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px;">✏️ 編集</button>
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px; margin-left: 4px;">🗑️ 削除</button>
+                                </div>
+                            </div>
+
+                            <div class="card-preview">
+                                <h3>🎭 パーティー2</h3>
+                                <p>メンバー: 4体 | パッシブ: +1000</p>
+                                <div style="margin-top: 10px;">
+                                    <span class="tag-preview">精霊</span>
+                                    <span class="tag-preview">鬼族</span>
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px;">✏️ 編集</button>
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px; margin-left: 4px;">🗑️ 削除</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 16px;">
+                            <button class="btn-preview btn-primary">➕ パーティー追加</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-preview" style="margin-top: 20px;">
+                        <h2 class="section-title">カラーパレット</h2>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #ffffff; border: 2px solid #ddd;"></div>
+                                <div class="color-label">背景1<br>#ffffff</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #4da6ff;"></div>
+                                <div class="color-label">Primary<br>#4da6ff</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #7c5cff;"></div>
+                                <div class="color-label">Secondary<br>#7c5cff</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #e8d5ff;"></div>
+                                <div class="color-label">Accent<br>#e8d5ff</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #66d9a3;"></div>
+                                <div class="color-label">Success<br>#66d9a3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 案C: ウォームトーン和風 -->
+        <div id="theme-c" class="preview-section">
+            <div class="theme-label">案C: ウォームトーン + 和風</div>
+            <div class="theme-description">
+                背景：薄い黄白 + 桜色グラデーション | 
+                アクセント：桜色・卵色・若葉色 | 
+                テキスト：焦茶 | 
+                フォント例：Segoe UI, Hiragino Kaku Gothic, 源ノ角ゴシック
+            </div>
+
+            <div class="preview-frame app-preview">
+                <div class="theme-preview theme-c">
+                    <div class="topbar-preview">
+                        <div class="topbar-title">
+                            <h1>パッシブ比較・パーティー作成アプリ</h1>
+                        </div>
+                        <div class="topbar-actions-preview">
+                            <button class="btn-preview btn-secondary">📋 使い方</button>
+                            <button class="btn-preview btn-secondary">⚖️ 比較</button>
+                            <button class="btn-preview btn-primary">📥 PDF出力</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-preview">
+                        <h2 class="section-title">パーティー一覧</h2>
+                        
+                        <div class="summary-preview">
+                            <div class="summary-label">パッシブ合計</div>
+                            <div class="summary-value">+1850</div>
+                        </div>
+
+                        <div class="card-grid">
+                            <div class="card-preview">
+                                <h3>🎭 パーティー1</h3>
+                                <p>メンバー: 4体 | パッシブ: +850</p>
+                                <div style="margin-top: 10px;">
+                                    <span class="tag-preview">魔神</span>
+                                    <span class="tag-preview">神族</span>
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px;">✏️ 編集</button>
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px; margin-left: 4px;">🗑️ 削除</button>
+                                </div>
+                            </div>
+
+                            <div class="card-preview">
+                                <h3>🎭 パーティー2</h3>
+                                <p>メンバー: 4体 | パッシブ: +1000</p>
+                                <div style="margin-top: 10px;">
+                                    <span class="tag-preview">精霊</span>
+                                    <span class="tag-preview">鬼族</span>
+                                </div>
+                                <div style="margin-top: 8px;">
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px;">✏️ 編集</button>
+                                    <button class="btn-preview btn-secondary" style="font-size: 12px; padding: 6px 12px; margin-left: 4px;">🗑️ 削除</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 16px;">
+                            <button class="btn-preview btn-primary">➕ パーティー追加</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-preview" style="margin-top: 20px;">
+                        <h2 class="section-title">カラーパレット</h2>
+                        <div class="color-swatch-row">
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #fffbf0; border: 2px solid #ddd;"></div>
+                                <div class="color-label">背景1<br>#fffbf0</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #f4a6c1;"></div>
+                                <div class="color-label">Primary<br>#f4a6c1</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #c8e6c9;"></div>
+                                <div class="color-label">Secondary<br>#c8e6c9</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #fff4a3;"></div>
+                                <div class="color-label">Accent<br>#fff4a3</div>
+                            </div>
+                            <div class="color-swatch">
+                                <div class="color-box" style="background: #c8e6c9;"></div>
+                                <div class="color-label">Success<br>#c8e6c9</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTheme(theme) {
+            // すべてのセクションを非表示
+            document.querySelectorAll('.preview-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // すべてのボタンを非アクティブ
+            document.querySelectorAll('.theme-selector button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // 選択されたテーマを表示
+            document.getElementById('theme-' + theme).classList.add('active');
+
+            // 対応するボタンをアクティブに
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
