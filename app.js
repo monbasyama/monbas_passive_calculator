@@ -15,6 +15,7 @@ const PASSIVE_STATS = [
   { key: 'crt', label: 'Crt', shortLabel: 'Cr' }
 ];
 const MONSTER_DATA_VERSION = '2026-10-monster-urls';
+const MONSTER_MANAGER_PASSWORD = '0888';
 const LEGACY_SAMPLE_IDS = new Set([
   'monster-fire-dragon',
   'monster-ice-wolf',
@@ -174,6 +175,18 @@ function getUi() {
   };
 }
 
+function authorizeMonsterManagerPage() {
+  const password = window.prompt('管理者パスワードを入力してください。');
+  if (password !== MONSTER_MANAGER_PASSWORD) {
+    if (password !== null) window.alert('パスワードが正しくありません。');
+    window.location.replace('index.html');
+    return false;
+  }
+
+  document.body.classList.add('manager-authorized');
+  return true;
+}
+
 function calculatePartyTotal(party) {
   if (!party || !Array.isArray(party.slots)) return 0;
 
@@ -228,7 +241,11 @@ function renderMonsterSearchResults() {
   const ui = getUi();
   if (!ui.monsterSearchInput || !ui.monsterSearchResults) return;
 
-  const query = ui.monsterSearchInput.value;
+  const query = ui.monsterSearchInput.value.trim();
+  if (!query) {
+    ui.monsterSearchResults.innerHTML = '<div class="empty-state">モンスター名を入力すると検索結果が表示されます</div>';
+    return;
+  }
   const results = searchMonsters(query);
 
   if (results.length === 0) {
@@ -592,12 +609,17 @@ function generatePdfFromParties() {
       .pdf-party { margin-bottom: 8px; page-break-inside: avoid; break-inside: avoid; }
       .pdf-party h2 { margin: 0 0 3px; font-size: 11px; line-height: 1.1; }
       .pdf-summary-table { width: 100%; border-collapse: collapse; font-size: 7px; line-height: 1.1; }
-      .pdf-summary-table th, .pdf-summary-table td { padding: 2px 3px; border: 1px solid #777; text-align: left; vertical-align: middle; }
+      .pdf-summary-table { table-layout: fixed; }
+      .pdf-summary-table th, .pdf-summary-table td { padding: 1px 2px; border: 1px solid #777; text-align: left; vertical-align: middle; }
       .pdf-summary-table tr { page-break-inside: avoid; break-inside: avoid; }
       .pdf-summary-table thead { background: #eee; }
       .pdf-summary-table .monster-image-cell { width: 20px; padding: 1px; text-align: center; }
       .pdf-summary-table .monster-image { position: static; inset: auto; display: block; width: 18px; height: 18px; margin: auto; object-fit: contain; }
-      .pdf-summary-table .passive-value-equation { display: flex; justify-content: space-between; gap: 2px; white-space: nowrap; }
+      .pdf-summary-table th[scope="row"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .pdf-summary-table .passive-value-equation { display: flex; justify-content: center; gap: 2px; white-space: nowrap; font-size: 6.5px; }
+      .pdf-summary-table .passive-value-individual { color: #374151; }
+      .pdf-summary-table .passive-value-bonus { color: #006b5b; }
+      .pdf-summary-table .passive-value-total { color: #173f8a; font-weight: 700; }
     </style>
   `;
 
@@ -614,6 +636,10 @@ function generatePdfFromParties() {
       <section class="pdf-party">
         <h2>パーティー ${partyIndex + 1}</h2>
         <table class="pdf-summary-table">
+          <colgroup>
+            <col style="width: 4%"><col style="width: 20%"><col style="width: 7%"><col style="width: 7%"><col style="width: 20%">
+            ${PASSIVE_STATS.map(() => '<col style="width: 7%">').join('')}
+          </colgroup>
           <thead><tr>
             <th></th><th>モンスター</th><th>種族</th><th>属性</th><th>パッシブ対象</th>
             ${PASSIVE_STATS.map(({ label }) => `<th>${label}</th>`).join('')}
@@ -633,7 +659,7 @@ function generatePdfFromParties() {
           ${PASSIVE_STATS.map(({ key }) => {
             const individual = Number(monster[key]) || 0;
             const bonus = bonuses[key];
-            return `<td><span class="passive-value-equation"><span>${individual}</span><span>+${bonus}</span><strong>${individual + bonus}</strong></span></td>`;
+            return `<td><span class="passive-value-equation"><span class="passive-value-individual">${individual}</span><span class="passive-value-bonus">+${bonus}</span><strong class="passive-value-total">${individual + bonus}</strong></span></td>`;
           }).join('')}
         </tr>
       `;
@@ -672,6 +698,8 @@ function initializePartyPage() {
 }
 
 function initializeMonsterPage() {
+  if (!authorizeMonsterManagerPage()) return;
+
   monsters = loadMonsters();
   parties = loadParties();
 
