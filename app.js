@@ -616,8 +616,7 @@ function generatePdfFromParties() {
       .pdf-summary-table .monster-image-cell { width: 20px; padding: 1px; text-align: center; }
       .pdf-summary-table .monster-image { position: static; inset: auto; display: block; width: 18px; height: 18px; margin: auto; object-fit: contain; }
       .pdf-summary-table th[scope="row"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .pdf-summary-table .passive-value-equation { display: flex; justify-content: center; gap: 1px; width: 100%; min-width: 0; white-space: normal; font-size: 6px; }
-      .pdf-summary-table .passive-value-equation > * { min-width: 0; overflow-wrap: anywhere; }
+      .pdf-summary-table .passive-value-cell { padding: 1px; text-align: center; white-space: nowrap; font-size: 6px; }
       .pdf-summary-table .passive-value-individual { color: #374151; }
       .pdf-summary-table .passive-value-bonus { color: #006b5b; }
       .pdf-summary-table .passive-value-total { color: #173f8a; font-weight: 700; }
@@ -639,12 +638,15 @@ function generatePdfFromParties() {
         <table class="pdf-summary-table">
           <colgroup>
             <col style="width: 4%"><col style="width: 20%"><col style="width: 7%"><col style="width: 7%"><col style="width: 20%">
-            ${PASSIVE_STATS.map(() => '<col style="width: 7%">').join('')}
+            ${PASSIVE_STATS.map(() => '<col style="width: 2.333%">'.repeat(3)).join('')}
           </colgroup>
-          <thead><tr>
-            <th></th><th>モンスター</th><th>種族</th><th>属性</th><th>パッシブ対象</th>
-            ${PASSIVE_STATS.map(({ label }) => `<th>${label}</th>`).join('')}
-          </tr></thead>
+          <thead>
+            <tr>
+              <th rowspan="2"></th><th rowspan="2">モンスター</th><th rowspan="2">種族</th><th rowspan="2">属性</th><th rowspan="2">パッシブ対象</th>
+              ${PASSIVE_STATS.map(({ label }) => `<th colspan="3">${label}</th>`).join('')}
+            </tr>
+            <tr>${PASSIVE_STATS.map(() => '<th>個</th><th>＋</th><th>計</th>').join('')}</tr>
+          </thead>
           <tbody>
     `;
 
@@ -660,7 +662,7 @@ function generatePdfFromParties() {
           ${PASSIVE_STATS.map(({ key }) => {
             const individual = Number(monster[key]) || 0;
             const bonus = bonuses[key];
-            return `<td><span class="passive-value-equation"><span class="passive-value-individual">${individual}</span><span class="passive-value-bonus">+${bonus}</span><strong class="passive-value-total">${individual + bonus}</strong></span></td>`;
+            return `<td class="passive-value-cell passive-value-individual">${individual}</td><td class="passive-value-cell passive-value-bonus">${bonus}</td><td class="passive-value-cell passive-value-total">${individual + bonus}</td>`;
           }).join('')}
         </tr>
       `;
