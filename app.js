@@ -682,10 +682,11 @@ function showPartyComparison() {
   closeBtn.type = 'button';
   closeBtn.className = 'secondary-btn';
   closeBtn.textContent = '閉じる';
-  closeBtn.style.cssText = 'position:sticky;top:8px;left:8px;margin:8px;z-index:1;';
+  closeBtn.style.cssText = 'position:sticky;top:8px;left:8px;margin:8px;z-index:1;background:#e8f0fe;color:#111;border:1px solid #6aa9ff;cursor:pointer;';
   closeBtn.addEventListener('click', () => overlay.remove());
   const content = document.createElement('div');
   content.className = 'pdf-print-content';
+  content.style.display = 'block';
   content.innerHTML = buildPartyReportHtml();
   overlay.append(closeBtn, content);
   document.body.appendChild(overlay);
