@@ -157,6 +157,7 @@ function getUi() {
     monsterSearchInput: document.getElementById('monster-search-input'),
     monsterSearchResults: document.getElementById('monster-search-results'),
     addPartyBtn: document.getElementById('add-party-btn'),
+    clearPartiesBtn: document.getElementById('clear-parties-btn'),
     compareBtn: document.getElementById('party-compare-btn'),
     pdfExportBtn: document.getElementById('pdf-export-btn'),
     newMonsterBtn: document.getElementById('new-monster-btn'),
@@ -735,6 +736,16 @@ function initializePartyPage() {
   if (ui.addPartyBtn) {
     ui.addPartyBtn.addEventListener('click', () => {
       parties.push(createNewParty());
+      saveParties();
+      renderParties();
+    });
+  }
+
+  if (ui.clearPartiesBtn) {
+    ui.clearPartiesBtn.addEventListener('click', () => {
+      if (!window.confirm('すべてのパーティーがクリアされます。よろしいですか？')) return;
+
+      parties = [createNewParty()];
       saveParties();
       renderParties();
     });
