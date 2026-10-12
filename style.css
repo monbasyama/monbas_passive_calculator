@@ -877,7 +877,7 @@ select {
 }
 
 .passive-summary-table thead th {
-  background: rgba(77, 166, 255, 0.1);
+  background: #e8f3ff;
   color: var(--primary-strong);
   white-space: nowrap;
 }
@@ -952,6 +952,18 @@ select {
 
 .pdf-print-content {
   display: none;
+}
+
+.party-comparison-content .pdf-party {
+  width: max-content;
+  min-width: 100%;
+}
+
+.party-comparison-content .pdf-party h2 {
+  position: sticky;
+  left: 0;
+  width: max-content;
+  background: #fff;
 }
 
 .usage-guide section + section {

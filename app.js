@@ -721,20 +721,16 @@ function showPartyComparison() {
 }
 
 async function updateCommitDisplay() {
-  const commitLink = document.getElementById('app-commit');
-  if (!commitLink) return;
+  const versionEl = document.getElementById('app-version');
+  if (!versionEl) return;
 
   try {
     const response = await fetch('https://api.github.com/repos/monbasyama/monbas_passive_calculator/commits?per_page=1');
     if (!response.ok) return;
 
-    const [commit] = await response.json();
-    if (!commit || !/^[0-9a-f]{40}$/i.test(commit.sha)) return;
-
-    commitLink.textContent = commit.sha.slice(0, 7);
-    commitLink.href = `https://github.com/monbasyama/monbas_passive_calculator/commit/${commit.sha}`;
-    commitLink.title = commit.sha;
-    commitLink.hidden = false;
+    const match = (response.headers.get('Link') || '').match(/[?&]page=(\d+)>;\s*rel="last"/);
+    const revision = match ? match[1] : '1';
+    versionEl.textContent = `ver 1.0.${revision}`;
   } catch {}
 }
 
