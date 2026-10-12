@@ -699,11 +699,10 @@ function showPartyComparison() {
   content.style.overflowX = 'auto';
   content.innerHTML = buildPartyReportHtml();
   content.querySelectorAll('.pdf-summary-table').forEach((table) => {
-    table.style.tableLayout = 'auto';
+    table.style.tableLayout = 'fixed';
     table.style.width = 'max-content';
     table.style.minWidth = '640px';
     table.style.fontSize = '9px';
-    table.querySelectorAll('colgroup').forEach((group) => group.remove());
     table.querySelectorAll('.passive-value-cell').forEach((cell) => { cell.style.fontSize = '8px'; cell.style.minWidth = '18px'; });
   });
   const pdfBtn = document.createElement('button');
