@@ -703,7 +703,9 @@ function showPartyComparison() {
     table.style.width = 'max-content';
     table.style.minWidth = '640px';
     table.style.fontSize = '9px';
-    table.querySelectorAll('colgroup col:nth-child(n + 6)').forEach((column) => { column.style.width = '28px'; });
+    table.querySelectorAll('colgroup col:nth-child(n + 6), thead tr:nth-child(2) th, .passive-value-cell').forEach((cell) => {
+      Object.assign(cell.style, { width: '28px', minWidth: '28px', maxWidth: '28px' });
+    });
     table.querySelectorAll('.passive-value-cell').forEach((cell) => { cell.style.fontSize = '8px'; });
   });
   const pdfBtn = document.createElement('button');
