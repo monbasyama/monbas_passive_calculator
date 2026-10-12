@@ -693,7 +693,7 @@ function showPartyComparison() {
   closeBtn.style.cssText = 'position:sticky;top:8px;left:8px;margin:8px;z-index:1;background:#e8f0fe;color:#111;border:1px solid #6aa9ff;cursor:pointer;';
   closeBtn.addEventListener('click', () => overlay.remove());
   const content = document.createElement('div');
-  content.className = 'pdf-print-content';
+  content.className = 'pdf-print-content party-comparison-content';
   content.style.display = 'block';
   content.style.padding = '2px';
   content.style.overflowX = 'auto';
@@ -701,6 +701,8 @@ function showPartyComparison() {
   content.querySelectorAll('.pdf-summary-table').forEach((table) => {
     table.style.minWidth = '640px';
     table.style.fontSize = '9px';
+    const imageColumn = table.querySelector('col');
+    if (imageColumn) imageColumn.style.width = '26px';
     table.querySelectorAll('.passive-value-cell').forEach((cell) => { cell.style.fontSize = '8px'; });
   });
   const pdfBtn = document.createElement('button');
@@ -716,6 +718,24 @@ function showPartyComparison() {
   toolbar.append(closeBtn, pdfBtn);
   overlay.append(toolbar, content);
   document.body.appendChild(overlay);
+}
+
+async function updateCommitDisplay() {
+  const commitLink = document.getElementById('app-commit');
+  if (!commitLink) return;
+
+  try {
+    const response = await fetch('https://api.github.com/repos/monbasyama/monbas_passive_calculator/commits?per_page=1');
+    if (!response.ok) return;
+
+    const [commit] = await response.json();
+    if (!commit || !/^[0-9a-f]{40}$/i.test(commit.sha)) return;
+
+    commitLink.textContent = commit.sha.slice(0, 7);
+    commitLink.href = `https://github.com/monbasyama/monbas_passive_calculator/commit/${commit.sha}`;
+    commitLink.title = commit.sha;
+    commitLink.hidden = false;
+  } catch {}
 }
 
 function generatePdfFromParties() {
@@ -947,6 +967,8 @@ function initializeMonsterPage() {
 }
 
 function startApp() {
+  updateCommitDisplay();
+
   const isPartyPage = !!document.getElementById('parties-container');
   const isMonsterPage = !!document.getElementById('monster-search-input');
   const isMonsterCatalogPage = !!document.getElementById('monster-catalog-filter-form');
