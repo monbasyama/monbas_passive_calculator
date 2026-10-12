@@ -394,7 +394,7 @@ function renderParties() {
                         const imageUrl = sanitizeUrl(monster.imageUrl);
                         return `
                           <div class="dropdown-item" data-monster-id="${escapeHtml(monster.id)}">
-                            ${imageUrl ? `<img class="dropdown-monster-image" src="${escapeHtml(imageUrl)}" alt="" aria-hidden="true" />` : ''}
+                            ${imageUrl ? `<img class="dropdown-monster-image" src="${escapeHtml(imageUrl)}" alt="" aria-hidden="true" loading="lazy" decoding="async" />` : ''}
                             <span>${escapeHtml(monster.name)}</span>
                           </div>
                         `;
