@@ -873,12 +873,22 @@ select {
   white-space: nowrap;
 }
 
+.passive-summary-table thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
 .passive-summary-table tbody th {
   font-weight: 400;
 }
 
 .passive-summary-table tbody th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
   min-width: 130px;
+  background: #f0f7ff;
 }
 
 .passive-summary-table tbody td:nth-child(4) {
