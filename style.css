@@ -534,6 +534,12 @@ select {
   min-width: 0;
 }
 
+.monster-selection-row .clear-monster-btn {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
 .monster-image-frame {
   position: relative;
   display: flex;
