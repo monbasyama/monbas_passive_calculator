@@ -940,14 +940,19 @@ select {
 
 .party-comparison-content .pdf-summary-table thead th:nth-child(2),
 .party-comparison-content .pdf-summary-table tbody th[scope="row"] {
-  position: sticky;
-  left: 26px;
-  z-index: 3;
+  min-width: 80px;
+  max-width: 120px;
+  white-space: normal !important;
   background: #fff;
 }
 
 .party-comparison-content .pdf-summary-table thead th:nth-child(2) {
   background: #eee;
+}
+
+.party-comparison-content .pdf-summary-table td,
+.party-comparison-content .pdf-summary-table th {
+  color: #000;
 }
 
 .pdf-print-content {
