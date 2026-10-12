@@ -894,7 +894,7 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 4px;
-  min-width: 76px;
+  min-width: 96px;
   white-space: nowrap;
 }
 
