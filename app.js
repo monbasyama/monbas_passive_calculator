@@ -375,21 +375,23 @@ function renderParties() {
             return `
               <div class="slot-card">
                 <div class="slot-heading">
-                  <label for="slot-${party.id}-${slotIndex}">${slotLabel}</label>
+                  <label for="slot-${escapeHtml(party.id)}-${slotIndex}">${slotLabel}</label>
                   ${selectedMonster ? renderMonsterImage(selectedMonster) : ''}
                 </div>
                 <div class="monster-selection-row">
                   <div class="monster-dropdown-wrapper">
                     <input
+                      id="slot-${escapeHtml(party.id)}-${slotIndex}"
                       type="text"
                       class="monster-search-field"
-                      data-party-id="${party.id}"
+                      data-party-id="${escapeHtml(party.id)}"
                       data-slot-index="${slotIndex}"
                       placeholder="モンスター名で検索..."
                       value="${selectedMonster ? escapeHtml(selectedMonster.name) : ''}"
                       autocomplete="off"
                     />
                     <div class="monster-dropdown-list" style="display: none;">
+                      <div class="dropdown-item dropdown-clear-item" data-monster-id="">未選択</div>
                       ${monsters.map((monster) => {
                         const imageUrl = sanitizeUrl(monster.imageUrl);
                         return `
@@ -401,6 +403,13 @@ function renderParties() {
                       }).join('')}
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    class="ghost-btn clear-monster-btn"
+                    data-party-id="${escapeHtml(party.id)}"
+                    data-slot-index="${slotIndex}"
+                    aria-label="${slotLabel}をクリア"
+                  ><i class="fas fa-eraser" aria-hidden="true"></i>クリア</button>
                 </div>
 
                 ${selectedMonster ? `
@@ -503,6 +512,12 @@ function attachMonsterImageHandlers(root) {
 }
 
 function attachPartyEvents() {
+  document.querySelectorAll('.clear-monster-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      clearPartySlot(button.dataset.partyId, Number(button.dataset.slotIndex));
+    });
+  });
+
   document.querySelectorAll('.delete-party-btn').forEach((button) => {
     button.addEventListener('click', () => {
       const partyId = button.dataset.partyId;
@@ -546,6 +561,15 @@ function attachPartyEvents() {
       
       if (!dropdown) return;
 
+      if (!event.target.value.trim()) {
+        const targetParty = parties.find((party) => party.id === event.target.dataset.partyId);
+        const slotIndex = Number(event.target.dataset.slotIndex);
+        if (targetParty && targetParty.slots[slotIndex]) {
+          clearPartySlot(event.target.dataset.partyId, slotIndex, true);
+          return;
+        }
+      }
+
       const items = dropdown.querySelectorAll('.dropdown-item');
       items.forEach((item) => {
         const monsterName = normalizeSearchText(item.textContent);
@@ -574,7 +598,12 @@ function attachPartyEvents() {
       const searchField = event.target.closest('.monster-dropdown-wrapper').querySelector('.monster-search-field');
       const partyId = searchField.dataset.partyId;
       const slotIndex = Number(searchField.dataset.slotIndex);
-      
+
+      if (!monsterId) {
+        clearPartySlot(partyId, slotIndex);
+        return;
+      }
+
       const targetParty = parties.find((party) => party.id === partyId);
       if (!targetParty) return;
 
@@ -583,6 +612,22 @@ function attachPartyEvents() {
       renderParties();
     });
   });
+}
+
+function clearPartySlot(partyId, slotIndex, restoreFocus = false) {
+  const targetParty = parties.find((party) => party.id === partyId);
+  if (!targetParty || !Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= targetParty.slots.length) return;
+  if (!targetParty.slots[slotIndex]) return;
+
+  targetParty.slots[slotIndex] = '';
+  saveParties();
+  renderParties();
+
+  if (restoreFocus) {
+    const searchField = Array.from(document.querySelectorAll('.monster-search-field'))
+      .find((input) => input.dataset.partyId === partyId && Number(input.dataset.slotIndex) === slotIndex);
+    searchField?.focus();
+  }
 }
 
 function resetMonsterForm() {
