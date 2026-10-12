@@ -644,7 +644,7 @@ function buildPartyReportHtml() {
         <table class="pdf-summary-table">
           <colgroup>
             <col style="width: 4%"><col style="width: 20%"><col style="width: 7%"><col style="width: 7%"><col style="width: 20%">
-            ${PASSIVE_STATS.map(() => '<col style="width: 2.333%">'.repeat(3)).join('')}
+            ${PASSIVE_STATS.map(() => '<col style="width: 2.1%"><col style="width: 2.1%"><col style="width: 2.8%">').join('')}
           </colgroup>
           <thead>
             <tr>
@@ -701,7 +701,7 @@ function showPartyComparison() {
   content.querySelectorAll('.pdf-summary-table').forEach((table) => {
     table.style.minWidth = '640px';
     table.style.fontSize = '9px';
-    table.querySelectorAll('.passive-value-cell').forEach((cell) => { cell.style.fontSize = '9px'; });
+    table.querySelectorAll('.passive-value-cell').forEach((cell) => { cell.style.fontSize = '8px'; });
   });
   const pdfBtn = document.createElement('button');
   pdfBtn.type = 'button';
