@@ -643,8 +643,8 @@ function buildPartyReportHtml() {
         <h2>パーティー ${partyIndex + 1}</h2>
         <table class="pdf-summary-table">
           <colgroup>
-            <col style="width: 4%"><col style="width: 20%"><col style="width: 7%"><col style="width: 7%"><col style="width: 20%">
-            ${PASSIVE_STATS.map(() => '<col style="width: 2.1%"><col style="width: 2.1%"><col style="width: 2.8%">').join('')}
+            <col style="width: 4%"><col style="width: 20%"><col style="width: 7%"><col style="width: 7%"><col style="width: 14%">
+            ${PASSIVE_STATS.map(() => '<col style="width: 2.6%"><col style="width: 2.6%"><col style="width: 2.8%">').join('')}
           </colgroup>
           <thead>
             <tr>
