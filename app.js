@@ -275,8 +275,8 @@ function renderMonsterSearchResults() {
       </div>
 
       <div class="monster-actions">
-        <button class="secondary-btn" type="button" data-action="edit" data-monster-id="${monster.id}">編集</button>
-        <button class="danger-btn" type="button" data-action="delete" data-monster-id="${monster.id}">削除</button>
+        <button class="secondary-btn" type="button" data-action="edit" data-monster-id="${monster.id}"><i class="fas fa-pencil" aria-hidden="true"></i>編集</button>
+        <button class="danger-btn" type="button" data-action="delete" data-monster-id="${monster.id}"><i class="fas fa-trash" aria-hidden="true"></i>削除</button>
       </div>
     </div>
   `).join('');
@@ -358,7 +358,7 @@ function renderParties() {
         <div class="party-header">
           <h3>パーティー ${partyIndex + 1}</h3>
           <div class="party-actions">
-            <button class="danger-btn delete-party-btn" type="button" data-party-id="${party.id}">削除</button>
+            <button class="danger-btn delete-party-btn" type="button" data-party-id="${party.id}"><i class="fas fa-trash" aria-hidden="true"></i>削除</button>
             <button class="secondary-btn duplicate-party-btn" type="button" data-party-id="${party.id}">複製</button>
           </div>
         </div>

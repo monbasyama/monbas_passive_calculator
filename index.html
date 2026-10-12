@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ちょいと召喚モンスターバスケット</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body data-page="party">
@@ -14,10 +18,10 @@
           <h1>パッシブ比較・パーティー作成アプリ</h1>
         </div>
         <div class="topbar-actions">
-          <a href="how-to-use.html" class="secondary-btn inline-link">使い方</a>
-          <button id="party-compare-btn" class="secondary-btn">パーティー比較</button>
-          <button id="pdf-export-btn" class="primary-btn" style="flex-basis:100%">PDF出力</button>
-          <a href="monster-search.html" class="secondary-btn inline-link" style="flex-basis:100%">モンスター検索</a>
+          <a href="how-to-use.html" class="secondary-btn inline-link"><i class="fas fa-question-circle" aria-hidden="true"></i>使い方</a>
+          <button id="party-compare-btn" class="secondary-btn"><i class="fas fa-scale-balanced" aria-hidden="true"></i>パーティー比較</button>
+          <button id="pdf-export-btn" class="primary-btn" style="flex-basis:100%"><i class="fas fa-file-pdf" aria-hidden="true"></i>PDF出力</button>
+          <a href="monster-search.html" class="secondary-btn inline-link" style="flex-basis:100%"><i class="fas fa-search" aria-hidden="true"></i>モンスター検索</a>
         </div>
       </header>
 
@@ -29,7 +33,7 @@
         <section id="party-builder-section" class="panel active-panel">
           <div class="section-header">
             <h2>パーティー一覧</h2>
-            <button id="add-party-btn" class="secondary-btn">パーティー追加</button>
+            <button id="add-party-btn" class="secondary-btn"><i class="fas fa-circle-plus" aria-hidden="true"></i>パーティー追加</button>
           </div>
 
           <div id="parties-container" class="parties-container"></div>
