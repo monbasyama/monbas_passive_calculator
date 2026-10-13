@@ -681,7 +681,15 @@ function buildPartyReportHtml() {
         slotIndex
       }))
       .filter(({ monster }) => monster);
-    if (!selectedMonsters.length) return;
+    if (!selectedMonsters.length) {
+      html += `
+        <section class="pdf-party">
+          <h2>パーティー ${partyIndex + 1}</h2>
+          <p class="pdf-empty-party">編成されたモンスターがありません。</p>
+        </section>
+      `;
+      return;
+    }
 
     html += `
       <section class="pdf-party">
@@ -788,14 +796,27 @@ function synchronizeComparisonColumnWidths(content) {
     });
   });
 
+  const statColumnWidths = [0, 0, 0];
+  columnWidths.forEach((width, index) => {
+    if (index >= 5) {
+      const statColumnType = (index - 5) % statColumnWidths.length;
+      statColumnWidths[statColumnType] = Math.max(statColumnWidths[statColumnType], width || 0);
+    }
+  });
+
   tables.forEach((table) => {
     const columns = Array.from(table.querySelectorAll('colgroup col'));
     columns.forEach((column, index) => {
-      const width = Math.ceil(columnWidths[index] || 28);
+      const statColumnType = index >= 5 ? (index - 5) % statColumnWidths.length : -1;
+      const width = Math.ceil((statColumnType >= 0 ? statColumnWidths[statColumnType] : columnWidths[index]) || 28);
       Object.assign(column.style, { width: `${width}px`, minWidth: `${width}px`, maxWidth: `${width}px` });
     });
     table.style.tableLayout = 'fixed';
-    table.style.width = `${columnWidths.reduce((total, width) => total + Math.ceil(width || 28), 0)}px`;
+    table.style.width = `${columns.reduce((total, column, index) => {
+      const statColumnType = index >= 5 ? (index - 5) % statColumnWidths.length : -1;
+      const width = statColumnType >= 0 ? statColumnWidths[statColumnType] : columnWidths[index];
+      return total + Math.ceil(width || 28);
+    }, 0)}px`;
   });
 }
 
@@ -819,7 +840,7 @@ function generatePdfFromParties() {
   printable.innerHTML = buildPartyReportHtml();
   document.body.appendChild(printable);
   window.addEventListener('afterprint', () => printable.remove(), { once: true });
-  window.print();
+  window.requestAnimationFrame(() => window.print());
 }
 
 function initializePartyPage() {
