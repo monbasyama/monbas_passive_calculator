@@ -766,6 +766,7 @@ function showPartyComparison() {
 }
 
 function synchronizeComparisonColumnWidths(content) {
+  const statColumnWidth = 32;
   const tables = Array.from(content.querySelectorAll('.pdf-summary-table'));
   if (!tables.length) return;
 
@@ -796,25 +797,17 @@ function synchronizeComparisonColumnWidths(content) {
     });
   });
 
-  const statColumnWidths = [0, 0, 0];
-  columnWidths.forEach((width, index) => {
-    if (index >= 5) {
-      const statColumnType = (index - 5) % statColumnWidths.length;
-      statColumnWidths[statColumnType] = Math.max(statColumnWidths[statColumnType], width || 0);
-    }
-  });
-
   tables.forEach((table) => {
     const columns = Array.from(table.querySelectorAll('colgroup col'));
     columns.forEach((column, index) => {
-      const statColumnType = index >= 5 ? (index - 5) % statColumnWidths.length : -1;
-      const width = Math.ceil((statColumnType >= 0 ? statColumnWidths[statColumnType] : columnWidths[index]) || 28);
+      const statColumnType = index >= 5 ? (index - 5) % 3 : -1;
+      const width = statColumnType >= 0 ? statColumnWidth : Math.ceil(columnWidths[index] || 28);
       Object.assign(column.style, { width: `${width}px`, minWidth: `${width}px`, maxWidth: `${width}px` });
     });
     table.style.tableLayout = 'fixed';
     table.style.width = `${columns.reduce((total, column, index) => {
-      const statColumnType = index >= 5 ? (index - 5) % statColumnWidths.length : -1;
-      const width = statColumnType >= 0 ? statColumnWidths[statColumnType] : columnWidths[index];
+      const statColumnType = index >= 5 ? (index - 5) % 3 : -1;
+      const width = statColumnType >= 0 ? statColumnWidth : columnWidths[index];
       return total + Math.ceil(width || 28);
     }, 0)}px`;
   });

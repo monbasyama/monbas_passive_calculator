@@ -949,6 +949,12 @@ select {
   background: #eee;
 }
 
+.party-comparison-content .pdf-summary-table thead tr:nth-child(2) th {
+  position: relative;
+  z-index: 0;
+  background: #eee;
+}
+
 .party-comparison-content .pdf-summary-table thead th:nth-child(2),
 .party-comparison-content .pdf-summary-table tbody th[scope="row"] {
   position: sticky;
