@@ -730,42 +730,73 @@ function showPartyComparison() {
   if (existing) existing.remove();
   const overlay = document.createElement('div');
   overlay.id = 'party-compare-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:1000;overflow:auto;background:#fff;';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;overflow:hidden;background:#fff;';
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'secondary-btn';
-  closeBtn.textContent = '閉じる';
-  closeBtn.style.cssText = 'position:sticky;top:8px;left:8px;margin:8px;z-index:1;background:#e8f0fe;color:#111;border:1px solid #6aa9ff;cursor:pointer;';
+  closeBtn.innerHTML = '<i class="fas fa-xmark" aria-hidden="true"></i>閉じる';
+  closeBtn.style.cssText = 'margin:8px;flex:none;z-index:5;background:#e8f0fe;color:#111;border:1px solid #6aa9ff;cursor:pointer;';
   closeBtn.addEventListener('click', () => overlay.remove());
   const content = document.createElement('div');
   content.className = 'pdf-print-content party-comparison-content';
   content.style.display = 'block';
   content.style.padding = '2px';
-  content.style.overflowX = 'auto';
+  content.style.cssText += ';flex:1;min-height:0;overflow:auto;';
   content.innerHTML = buildPartyReportHtml();
-  content.querySelectorAll('.pdf-summary-table').forEach((table) => {
-    table.style.tableLayout = 'fixed';
-    table.style.width = 'max-content';
-    table.style.minWidth = '640px';
-    table.style.fontSize = '9px';
-    table.querySelectorAll('colgroup col:nth-child(n + 6), thead tr:nth-child(2) th, .passive-value-cell').forEach((cell) => {
-      Object.assign(cell.style, { width: '28px', minWidth: '28px', maxWidth: '28px' });
-    });
-    table.querySelectorAll('.passive-value-cell').forEach((cell) => { cell.style.fontSize = '8px'; });
-  });
   const pdfBtn = document.createElement('button');
   pdfBtn.type = 'button';
   pdfBtn.className = 'primary-btn';
-  pdfBtn.textContent = 'PDF出力';
-  pdfBtn.style.cssText = 'position:sticky;top:8px;margin:8px 8px 8px 0;z-index:1;cursor:pointer;';
+  pdfBtn.innerHTML = '<i class="fas fa-file-pdf" aria-hidden="true"></i>PDF出力';
+  pdfBtn.style.cssText = 'margin:8px 8px 8px 0;flex:none;z-index:5;cursor:pointer;';
   pdfBtn.addEventListener('click', generatePdfFromParties);
   const toolbar = document.createElement('div');
-  toolbar.style.cssText = 'display:flex;align-items:center;position:sticky;top:0;z-index:1;background:#fff;';
-  closeBtn.style.position = 'static';
-  pdfBtn.style.position = 'static';
+  toolbar.style.cssText = 'display:flex;align-items:center;position:sticky;top:0;flex:none;z-index:4;background:#fff;';
   toolbar.append(closeBtn, pdfBtn);
   overlay.append(toolbar, content);
   document.body.appendChild(overlay);
+  synchronizeComparisonColumnWidths(content);
+}
+
+function synchronizeComparisonColumnWidths(content) {
+  const tables = Array.from(content.querySelectorAll('.pdf-summary-table'));
+  if (!tables.length) return;
+
+  const columnWidths = [];
+  tables.forEach((table) => {
+    table.style.tableLayout = 'auto';
+    table.style.width = 'max-content';
+    table.style.minWidth = '0';
+    table.style.fontSize = '9px';
+    table.style.borderCollapse = 'separate';
+    table.style.borderSpacing = '0';
+    table.querySelectorAll('colgroup col').forEach((column) => {
+      column.removeAttribute('style');
+    });
+  });
+
+  tables.forEach((table) => {
+    table.querySelectorAll('tbody tr').forEach((row) => {
+      let columnIndex = 0;
+      row.querySelectorAll('th, td').forEach((cell) => {
+        const span = Number(cell.colSpan) || 1;
+        const width = cell.getBoundingClientRect().width / span;
+        for (let index = 0; index < span; index += 1) {
+          columnWidths[columnIndex] = Math.max(columnWidths[columnIndex] || 0, width);
+          columnIndex += 1;
+        }
+      });
+    });
+  });
+
+  tables.forEach((table) => {
+    const columns = Array.from(table.querySelectorAll('colgroup col'));
+    columns.forEach((column, index) => {
+      const width = Math.ceil(columnWidths[index] || 28);
+      Object.assign(column.style, { width: `${width}px`, minWidth: `${width}px`, maxWidth: `${width}px` });
+    });
+    table.style.tableLayout = 'fixed';
+    table.style.width = `${columnWidths.reduce((total, width) => total + Math.ceil(width || 28), 0)}px`;
+  });
 }
 
 async function updateCommitDisplay() {
