@@ -534,9 +534,10 @@ select {
   min-width: 0;
 }
 
-.monster-selection-row .clear-monster-btn {
+.monster-detail .clear-monster-btn {
   flex: 0 0 auto;
   padding: 10px 12px;
+  margin-top: 8px;
   white-space: nowrap;
 }
 
