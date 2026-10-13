@@ -936,15 +936,16 @@ select {
 .party-comparison-content .pdf-summary-table tbody .monster-image-cell {
   position: sticky;
   left: 0;
-  z-index: 2;
+  z-index: 3;
   background: #fff;
+  background-clip: padding-box;
   width: 24px;
   min-width: 24px;
   max-width: 24px;
 }
 
 .party-comparison-content .pdf-summary-table thead th:first-child {
-  z-index: 4;
+  z-index: 5;
   background: #eee;
 }
 
@@ -952,19 +953,19 @@ select {
 .party-comparison-content .pdf-summary-table tbody th[scope="row"] {
   position: sticky;
   left: 24px;
-  z-index: 1;
+  z-index: 2;
 }
 
 .party-comparison-content .pdf-summary-table thead th:nth-child(2) {
-  z-index: 3;
+  z-index: 4;
 }
 
 .party-comparison-content .pdf-summary-table thead th:nth-child(2),
 .party-comparison-content .pdf-summary-table tbody th[scope="row"] {
   min-width: 80px;
-  max-width: 120px;
-  white-space: normal !important;
+  white-space: nowrap !important;
   background: #fff;
+  background-clip: padding-box;
 }
 
 .party-comparison-content .pdf-summary-table thead th:nth-child(2) {
