@@ -403,13 +403,6 @@ function renderParties() {
                       }).join('')}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    class="ghost-btn clear-monster-btn"
-                    data-party-id="${escapeHtml(party.id)}"
-                    data-slot-index="${slotIndex}"
-                    aria-label="${slotLabel}をクリア"
-                  ><i class="fas fa-eraser" aria-hidden="true"></i>クリア</button>
                 </div>
 
                 ${selectedMonster ? `
@@ -426,6 +419,13 @@ function renderParties() {
                         <tr>${PASSIVE_STATS.map(({ key }) => `<td>${Number(selectedMonster[key]) || 0}</td>`).join('')}</tr>
                       </tbody>
                     </table>
+                    <button
+                      type="button"
+                      class="ghost-btn clear-monster-btn"
+                      data-party-id="${escapeHtml(party.id)}"
+                      data-slot-index="${slotIndex}"
+                      aria-label="${slotLabel}をクリア"
+                    ><i class="fas fa-eraser" aria-hidden="true"></i>クリア</button>
                   </div>
                 ` : '<div class="empty-state">未選択</div>'}
               </div>
