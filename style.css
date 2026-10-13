@@ -936,7 +936,7 @@ select {
 .party-comparison-content .pdf-summary-table tbody .monster-image-cell {
   position: sticky;
   left: 0;
-  z-index: 3;
+  z-index: 4;
   background: #fff;
   background-clip: padding-box;
   width: 24px;
@@ -945,7 +945,7 @@ select {
 }
 
 .party-comparison-content .pdf-summary-table thead th:first-child {
-  z-index: 5;
+  z-index: 6;
   background: #eee;
 }
 
@@ -953,11 +953,11 @@ select {
 .party-comparison-content .pdf-summary-table tbody th[scope="row"] {
   position: sticky;
   left: 24px;
-  z-index: 2;
+  z-index: 3;
 }
 
 .party-comparison-content .pdf-summary-table thead th:nth-child(2) {
-  z-index: 4;
+  z-index: 5;
 }
 
 .party-comparison-content .pdf-summary-table thead th:nth-child(2),
