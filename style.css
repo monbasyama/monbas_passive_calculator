@@ -932,7 +932,7 @@ select {
   color: var(--text);
 }
 
-.party-comparison-content .pdf-summary-table thead th:first-child,
+.party-comparison-content .pdf-summary-table thead tr:first-child th:first-child,
 .party-comparison-content .pdf-summary-table tbody .monster-image-cell {
   position: sticky;
   left: 0;
@@ -944,7 +944,7 @@ select {
   max-width: 24px;
 }
 
-.party-comparison-content .pdf-summary-table thead th:first-child {
+.party-comparison-content .pdf-summary-table thead tr:first-child th:first-child {
   z-index: 6;
   background: #eee;
 }
@@ -955,18 +955,18 @@ select {
   background: #eee;
 }
 
-.party-comparison-content .pdf-summary-table thead th:nth-child(2),
+.party-comparison-content .pdf-summary-table thead tr:first-child th:nth-child(2),
 .party-comparison-content .pdf-summary-table tbody th[scope="row"] {
   position: sticky;
   left: 24px;
   z-index: 3;
 }
 
-.party-comparison-content .pdf-summary-table thead th:nth-child(2) {
+.party-comparison-content .pdf-summary-table thead tr:first-child th:nth-child(2) {
   z-index: 5;
 }
 
-.party-comparison-content .pdf-summary-table thead th:nth-child(2),
+.party-comparison-content .pdf-summary-table thead tr:first-child th:nth-child(2),
 .party-comparison-content .pdf-summary-table tbody th[scope="row"] {
   min-width: 80px;
   white-space: nowrap !important;
@@ -974,7 +974,7 @@ select {
   background-clip: padding-box;
 }
 
-.party-comparison-content .pdf-summary-table thead th:nth-child(2) {
+.party-comparison-content .pdf-summary-table thead tr:first-child th:nth-child(2) {
   background: #eee;
 }
 
@@ -983,7 +983,8 @@ select {
   color: #000;
 }
 
-.pdf-print-content {
+.pdf-print-content,
+.party-print-root {
   display: none;
 }
 
@@ -1021,20 +1022,26 @@ select {
 
 @media print {
   @page {
-    margin: 0;
+    margin: 8mm;
   }
 
+  html,
   body {
     background: #fff !important;
+    min-height: 0 !important;
+    height: auto !important;
   }
 
-  body > :not(.pdf-print-content) {
+  body.printing-party > :not(.party-print-root) {
     display: none !important;
   }
 
-  body > .pdf-print-content {
+  body.printing-party > .party-print-root {
     display: block !important;
+    position: static !important;
+    visibility: visible !important;
     background: #fff !important;
+    color: #000 !important;
   }
 }
 
