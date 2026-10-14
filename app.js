@@ -828,32 +828,30 @@ async function updateCommitDisplay() {
 }
 
 function generatePdfFromParties() {
-  const frame = document.createElement('iframe');
-  frame.setAttribute('aria-hidden', 'true');
-  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
-  document.body.appendChild(frame);
-  const doc = frame.contentDocument;
-  doc.open();
-  doc.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>パーティー比較</title><style>@page { margin: 8mm; } html, body { margin: 0; background: #fff; }</style></head><body class="pdf-print-content">${buildPartyReportHtml()}</body></html>`);
-  doc.close();
-  const cleanup = () => frame.remove();
-  const printFrame = () => {
-    const win = frame.contentWindow;
-    win.addEventListener('afterprint', cleanup, { once: true });
-    win.focus();
-    win.print();
+  document.querySelectorAll('.party-print-root').forEach((el) => el.remove());
+  const root = document.createElement('div');
+  root.className = 'party-print-root';
+  root.innerHTML = buildPartyReportHtml();
+  document.body.appendChild(root);
+  document.body.classList.add('printing-party');
+  const cleanup = () => {
+    document.body.classList.remove('printing-party');
+    root.remove();
   };
-  const images = Array.from(doc.images).filter((img) => !img.complete);
+  window.addEventListener('afterprint', cleanup, { once: true });
+  const printNow = () => window.requestAnimationFrame(() => window.requestAnimationFrame(() => window.print()));
+  const images = Array.from(root.querySelectorAll('img')).filter((img) => !img.complete);
   if (!images.length) {
-    window.requestAnimationFrame(printFrame);
+    printNow();
     return;
   }
   let pending = images.length;
   const done = () => {
     pending -= 1;
-    if (pending === 0) printFrame();
+    if (pending === 0) printNow();
   };
   images.forEach((img) => {
+    img.loading = 'eager';
     img.addEventListener('load', done, { once: true });
     img.addEventListener('error', done, { once: true });
   });
