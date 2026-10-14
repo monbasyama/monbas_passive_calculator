@@ -668,6 +668,7 @@ function buildPartyReportHtml() {
       .pdf-summary-table .monster-image { position: static; inset: auto; display: block; width: 18px; height: 18px; margin: auto; object-fit: contain; }
       .pdf-summary-table th[scope="row"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .pdf-summary-table .passive-value-cell { padding: 1px; text-align: center; white-space: nowrap; font-size: 6px; }
+      .party-comparison-content .pdf-summary-table .passive-value-cell { font-size: 9px; }
       .pdf-summary-table .passive-value-individual { color: #374151; }
       .pdf-summary-table .passive-value-bonus { color: #006b5b; }
       .pdf-summary-table .passive-value-total { color: #173f8a; font-weight: 700; }
@@ -771,7 +772,7 @@ function showPartyComparison() {
 }
 
 function synchronizeComparisonColumnWidths(content) {
-  const statColumnWidth = 32;
+  const statColumnWidth = 34;
   const tables = Array.from(content.querySelectorAll('.pdf-summary-table'));
   if (!tables.length) return;
 
