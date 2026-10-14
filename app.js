@@ -656,7 +656,7 @@ function escapeHtml(value) {
 function buildPartyReportHtml() {
   let html = `
     <style>
-      .pdf-print-content { padding: 6mm; color: #000; background: #fff; font-family: "Segoe UI", "Yu Gothic", sans-serif; }
+      .pdf-print-content, .party-print-root { padding: 6mm; color: #000; background: #fff; font-family: "Segoe UI", "Yu Gothic", sans-serif; }
       .pdf-party { margin-bottom: 8px; page-break-inside: avoid; break-inside: avoid; }
       .pdf-party h2 { margin: 0 0 3px; font-size: 11px; line-height: 1.1; }
       .pdf-summary-table { width: 100%; border-collapse: collapse; font-size: 7px; line-height: 1.1; }
@@ -829,10 +829,14 @@ async function updateCommitDisplay() {
 
 function generatePdfFromParties() {
   const printable = document.createElement('div');
-  printable.className = 'pdf-print-content';
+  printable.className = 'party-print-root';
   printable.innerHTML = buildPartyReportHtml();
   document.body.appendChild(printable);
-  window.addEventListener('afterprint', () => printable.remove(), { once: true });
+  document.body.classList.add('printing-party');
+  window.addEventListener('afterprint', () => {
+    printable.remove();
+    document.body.classList.remove('printing-party');
+  }, { once: true });
   window.requestAnimationFrame(() => window.print());
 }
 
