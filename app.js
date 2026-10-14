@@ -833,30 +833,48 @@ async function updateCommitDisplay() {
 }
 
 function generatePdfFromParties() {
-  document.querySelectorAll('.party-print-root').forEach((el) => el.remove());
-  const root = createPartyReportContent('party-print-root');
-  document.body.appendChild(root);
-  document.body.classList.add('printing-party');
-  const cleanup = () => {
-    document.body.classList.remove('printing-party');
-    root.remove();
-  };
-  window.addEventListener('afterprint', cleanup, { once: true });
-  const printNow = () => window.requestAnimationFrame(() => window.requestAnimationFrame(() => window.print()));
-  const images = Array.from(root.querySelectorAll('img')).filter((img) => !img.complete);
-  if (!images.length) {
-    printNow();
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('PDF出力画面を開けませんでした。ポップアップを許可してください。');
     return;
   }
-  let pending = images.length;
-  const done = () => {
-    pending -= 1;
-    if (pending === 0) printNow();
-  };
-  images.forEach((img) => {
-    img.loading = 'eager';
-    img.addEventListener('load', done, { once: true });
-    img.addEventListener('error', done, { once: true });
+
+  const printDocument = printWindow.document;
+  printDocument.open();
+  printDocument.write(`<!DOCTYPE html>
+    <html lang="ja">
+      <head>
+        <meta charset="UTF-8">
+        <title>パーティー比較</title>
+        <style>
+          @page { margin: 8mm; }
+          html, body { margin: 0; min-height: 0; background: #fff; }
+        </style>
+      </head>
+      <body><main class="party-print-root">${buildPartyReportHtml()}</main></body>
+    </html>`);
+  printDocument.close();
+
+  const images = Array.from(printDocument.images);
+  const imageLoads = images.map((image) => {
+    if (image.complete) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      let timeoutId;
+      const finish = () => {
+        clearTimeout(timeoutId);
+        resolve();
+      };
+      image.addEventListener('load', finish, { once: true });
+      image.addEventListener('error', finish, { once: true });
+      timeoutId = setTimeout(finish, 8000);
+    });
+  });
+
+  Promise.all(imageLoads).then(() => {
+    printWindow.addEventListener('afterprint', () => printWindow.close(), { once: true });
+    printWindow.focus();
+    printWindow.print();
   });
 }
 
