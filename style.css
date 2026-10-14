@@ -1032,7 +1032,9 @@ select {
     height: auto !important;
   }
 
-  body.printing-party > :not(.party-print-root) {
+  body.printing-party > :not(.party-print-root),
+  body.printing-party > .app-shell,
+  body.printing-party #party-compare-overlay {
     display: none !important;
   }
 
