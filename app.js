@@ -733,6 +733,13 @@ function buildPartyReportHtml() {
   return html;
 }
 
+function createPartyReportContent(className) {
+  const content = document.createElement('div');
+  content.className = className;
+  content.innerHTML = buildPartyReportHtml();
+  return content;
+}
+
 function showPartyComparison() {
   const existing = document.getElementById('party-compare-overlay');
   if (existing) existing.remove();
@@ -745,12 +752,10 @@ function showPartyComparison() {
   closeBtn.innerHTML = '<i class="fas fa-xmark" aria-hidden="true"></i>閉じる';
   closeBtn.style.cssText = 'margin:8px;flex:none;z-index:5;background:#e8f0fe;color:#111;border:1px solid #6aa9ff;cursor:pointer;';
   closeBtn.addEventListener('click', () => overlay.remove());
-  const content = document.createElement('div');
-  content.className = 'pdf-print-content party-comparison-content';
+  const content = createPartyReportContent('pdf-print-content party-comparison-content');
   content.style.display = 'block';
   content.style.padding = '2px';
   content.style.cssText += ';flex:1;min-height:0;overflow:auto;';
-  content.innerHTML = buildPartyReportHtml();
   const pdfBtn = document.createElement('button');
   pdfBtn.type = 'button';
   pdfBtn.className = 'primary-btn';
@@ -829,9 +834,7 @@ async function updateCommitDisplay() {
 
 function generatePdfFromParties() {
   document.querySelectorAll('.party-print-root').forEach((el) => el.remove());
-  const root = document.createElement('div');
-  root.className = 'party-print-root';
-  root.innerHTML = buildPartyReportHtml();
+  const root = createPartyReportContent('party-print-root');
   document.body.appendChild(root);
   document.body.classList.add('printing-party');
   const cleanup = () => {
