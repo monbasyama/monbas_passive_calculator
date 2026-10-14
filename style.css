@@ -983,11 +983,6 @@ select {
   color: #000;
 }
 
-.pdf-print-content,
-.party-print-root {
-  display: none;
-}
-
 .party-comparison-content .pdf-party {
   width: max-content;
   min-width: 100%;
@@ -1018,31 +1013,6 @@ select {
 
 .usage-guide li + li {
   margin-top: 8px;
-}
-
-@media print {
-  @page {
-    margin: 8mm;
-  }
-
-  html,
-  body {
-    background: #fff !important;
-    min-height: 0 !important;
-    height: auto !important;
-  }
-
-  body.printing-party > :not(.party-print-root) {
-    display: none !important;
-  }
-
-  body.printing-party > .party-print-root {
-    display: block !important;
-    position: static !important;
-    visibility: visible !important;
-    background: #fff !important;
-    color: #000 !important;
-  }
 }
 
 @media (max-width: 780px) {
