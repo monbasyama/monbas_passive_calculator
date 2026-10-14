@@ -828,16 +828,35 @@ async function updateCommitDisplay() {
 }
 
 function generatePdfFromParties() {
-  const printable = document.createElement('div');
-  printable.className = 'party-print-root';
-  printable.innerHTML = buildPartyReportHtml();
-  document.body.appendChild(printable);
-  document.body.classList.add('printing-party');
-  window.addEventListener('afterprint', () => {
-    printable.remove();
-    document.body.classList.remove('printing-party');
-  }, { once: true });
-  window.requestAnimationFrame(() => window.print());
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+  document.body.appendChild(frame);
+  const doc = frame.contentDocument;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>パーティー比較</title><style>@page { margin: 8mm; } html, body { margin: 0; background: #fff; }</style></head><body class="pdf-print-content">${buildPartyReportHtml()}</body></html>`);
+  doc.close();
+  const cleanup = () => frame.remove();
+  const printFrame = () => {
+    const win = frame.contentWindow;
+    win.addEventListener('afterprint', cleanup, { once: true });
+    win.focus();
+    win.print();
+  };
+  const images = Array.from(doc.images).filter((img) => !img.complete);
+  if (!images.length) {
+    window.requestAnimationFrame(printFrame);
+    return;
+  }
+  let pending = images.length;
+  const done = () => {
+    pending -= 1;
+    if (pending === 0) printFrame();
+  };
+  images.forEach((img) => {
+    img.addEventListener('load', done, { once: true });
+    img.addEventListener('error', done, { once: true });
+  });
 }
 
 function initializePartyPage() {
