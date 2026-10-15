@@ -134,6 +134,21 @@ async function refreshMonsterData() {
   localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
 }
 
+async function refreshMonsterDataWithPopup(onSuccess) {
+  const refreshButton = document.getElementById('party-refresh-data') || document.getElementById('catalog-refresh-data');
+  if (refreshButton) refreshButton.disabled = true;
+
+  try {
+    await refreshMonsterData();
+    onSuccess();
+    window.alert(`最新データを取得しました。${monsters.length}件`);
+  } catch (error) {
+    window.alert('最新データの取得に失敗しました');
+  } finally {
+    if (refreshButton) refreshButton.disabled = false;
+  }
+}
+
 function loadParties() {
   const stored = localStorage.getItem(STORAGE_KEYS.parties);
   if (!stored) {
@@ -933,20 +948,9 @@ function initializePartyPage() {
   }
 
   const refreshButton = document.getElementById('party-refresh-data');
-  const refreshStatus = document.getElementById('party-refresh-status');
   if (refreshButton) {
     refreshButton.addEventListener('click', async () => {
-      refreshButton.disabled = true;
-      if (refreshStatus) refreshStatus.textContent = '取得中...';
-      try {
-        await refreshMonsterData();
-        renderParties();
-        if (refreshStatus) refreshStatus.textContent = `最新データを取得しました（${monsters.length}件）`;
-      } catch (error) {
-        if (refreshStatus) refreshStatus.textContent = '最新データの取得に失敗しました';
-      } finally {
-        refreshButton.disabled = false;
-      }
+      await refreshMonsterDataWithPopup(renderParties);
     });
   }
 
@@ -959,6 +963,7 @@ function initializeMonsterCatalogPage() {
   monsters = loadMonsters();
   const filterForm = document.getElementById('monster-catalog-filter-form');
   const resetButton = document.getElementById('catalog-filter-reset');
+  const refreshButton = document.getElementById('catalog-refresh-data');
 
   if (filterForm) {
     filterForm.addEventListener('input', renderMonsterCatalogResults);
@@ -969,6 +974,12 @@ function initializeMonsterCatalogPage() {
     resetButton.addEventListener('click', () => {
       filterForm.reset();
       renderMonsterCatalogResults();
+    });
+  }
+
+  if (refreshButton) {
+    refreshButton.addEventListener('click', async () => {
+      await refreshMonsterDataWithPopup(renderMonsterCatalogResults);
     });
   }
 
