@@ -373,6 +373,10 @@ body[data-page="monster-manager"]:not(.manager-authorized) {
   margin-bottom: 8px;
 }
 
+.monster-passive-target {
+  margin-bottom: 8px;
+}
+
 .monster-passive-table {
   width: 100%;
   border-collapse: collapse;
