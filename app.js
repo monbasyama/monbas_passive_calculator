@@ -135,7 +135,7 @@ async function refreshMonsterData() {
 }
 
 async function refreshMonsterDataWithPopup(onSuccess) {
-  const refreshButton = document.getElementById('party-refresh-data') || document.getElementById('catalog-refresh-data');
+  const refreshButton = document.getElementById('party-refresh-data');
   if (refreshButton) refreshButton.disabled = true;
 
   try {
@@ -963,7 +963,6 @@ function initializeMonsterCatalogPage() {
   monsters = loadMonsters();
   const filterForm = document.getElementById('monster-catalog-filter-form');
   const resetButton = document.getElementById('catalog-filter-reset');
-  const refreshButton = document.getElementById('catalog-refresh-data');
 
   if (filterForm) {
     filterForm.addEventListener('input', renderMonsterCatalogResults);
@@ -974,12 +973,6 @@ function initializeMonsterCatalogPage() {
     resetButton.addEventListener('click', () => {
       filterForm.reset();
       renderMonsterCatalogResults();
-    });
-  }
-
-  if (refreshButton) {
-    refreshButton.addEventListener('click', async () => {
-      await refreshMonsterDataWithPopup(renderMonsterCatalogResults);
     });
   }
 
