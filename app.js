@@ -113,6 +113,27 @@ function loadMonsters() {
   }
 }
 
+async function refreshMonsterData() {
+  const response = await fetch(`monster.js?t=${Date.now()}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const source = await response.text();
+  const latest = new Function(`${source}\nreturn MONSTER_DATA;`)();
+  if (!Array.isArray(latest) || latest.length === 0) throw new Error('invalid data');
+  const latestNames = new Set(latest.map((monster) => monster.name));
+  let current = [];
+  try {
+    current = sanitizeMonsters(JSON.parse(localStorage.getItem(STORAGE_KEYS.monsters)));
+  } catch (error) {
+    current = [];
+  }
+  const customMonsters = current.filter((monster) =>
+    !LEGACY_SAMPLE_IDS.has(monster.id) && !latestNames.has(monster.name) && !String(monster.id).startsWith('monster-supplied-')
+  );
+  monsters = sanitizeMonsters([...latest, ...customMonsters]);
+  saveMonsters();
+  localStorage.setItem(STORAGE_KEYS.monsterDataVersion, MONSTER_DATA_VERSION);
+}
+
 function loadParties() {
   const stored = localStorage.getItem(STORAGE_KEYS.parties);
   if (!stored) {
@@ -930,6 +951,24 @@ function initializeMonsterCatalogPage() {
     resetButton.addEventListener('click', () => {
       filterForm.reset();
       renderMonsterCatalogResults();
+    });
+  }
+
+  const refreshButton = document.getElementById('catalog-refresh-data');
+  const refreshStatus = document.getElementById('catalog-refresh-status');
+  if (refreshButton) {
+    refreshButton.addEventListener('click', async () => {
+      refreshButton.disabled = true;
+      if (refreshStatus) refreshStatus.textContent = '取得中...';
+      try {
+        await refreshMonsterData();
+        renderMonsterCatalogResults();
+        if (refreshStatus) refreshStatus.textContent = `最新データを取得しました（${monsters.length}件）`;
+      } catch (error) {
+        if (refreshStatus) refreshStatus.textContent = '最新データの取得に失敗しました';
+      } finally {
+        refreshButton.disabled = false;
+      }
     });
   }
 
