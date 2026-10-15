@@ -447,6 +447,9 @@ function renderParties() {
                       <span class="tag">種族: ${escapeHtml(selectedMonster.race || '未設定')}</span>
                       <span class="tag">属性: ${escapeHtml(selectedMonster.element || '未設定')}</span>
                     </div>
+                    <div class="monster-passive-target">
+                      <span class="tag">パッシブ対象: ${escapeHtml(selectedMonster.passiveTarget.join('、') || 'なし')}</span>
+                    </div>
                     <table class="monster-passive-table">
                       <thead>
                         <tr>${PASSIVE_STATS.map(({ shortLabel }) => `<th scope="col">${shortLabel}</th>`).join('')}</tr>
