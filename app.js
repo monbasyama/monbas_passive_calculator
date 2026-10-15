@@ -1007,8 +1007,8 @@ function renderMonsterCatalogResults() {
     const nameMatches = monster.name.toLocaleLowerCase().includes(nameQuery);
     const raceMatches = !races.length || races.includes(monster.race);
     const elementMatches = !elements.length || elements.includes(monster.element);
-    const passiveRaceMatches = !passiveRaces.length || passiveRaces.some((target) => monster.passiveTarget.includes(target));
-    const passiveElementMatches = !passiveElements.length || passiveElements.some((target) => monster.passiveTarget.includes(target));
+    const passiveRaceMatches = !passiveRaces.length || passiveRaces.every((target) => monster.passiveTarget.includes(target));
+    const passiveElementMatches = !passiveElements.length || passiveElements.every((target) => monster.passiveTarget.includes(target));
     const statsMatch = PASSIVE_STATS.every(({ key }) => {
       const value = Number(monster[key]) || 0;
       const { min, max } = ranges[key];
