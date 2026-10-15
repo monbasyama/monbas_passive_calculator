@@ -55,6 +55,7 @@ const MONSTER_IMAGE_URLS = {
   'タナトス': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9ydFFMdGxRVi5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'タニグク': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9YMTNEdFd5Ri5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'タラスク': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9meDlvMXlHVy5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
+  'チェシャ猫・アリオク': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9KWnNNcE1hdS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'チビサタン': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9FOVJRSnlrTS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ツイゴアブ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9vSE5HQmhXRC5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ツクヨミ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9QMDYyeTJIdS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
@@ -111,6 +112,7 @@ const MONSTER_IMAGE_URLS = {
   'リンゴ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9DUGxhUnRCSS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ルフ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9XT3ZHOWg2SC5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ロキ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9QMlV6c3IzYS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
+  'ロックウィッチ・ルフ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC95dTdyVHFNVC5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ワッカ＆カムイ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9EdFBVbFg0ay5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ヴィシュヌ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9oSEJCc3Jicy5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   '三蔵法師': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9yRkRRczZ3cC5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
@@ -233,6 +235,7 @@ const MONSTER_WIKI_URLS = {
   'タナトス': 'https://gamerch.com/monbas/899407',
   'タニグク': 'https://gamerch.com/monbas/357692',
   'タラスク': 'https://gamerch.com/monbas/875177',
+  'チェシャ猫・アリオク': 'https://gamerch.com/monbas/1022093',
   'チビサタン': 'https://gamerch.com/monbas/255677',
   'ツイゴアブ': 'https://gamerch.com/monbas/390004',
   'ツクヨミ': 'https://gamerch.com/monbas/714259',
@@ -289,6 +292,7 @@ const MONSTER_WIKI_URLS = {
   'リンゴ': 'https://gamerch.com/monbas/255675',
   'ルフ': 'https://gamerch.com/monbas/949217',
   'ロキ': 'https://gamerch.com/monbas/844716',
+  'ロックウィッチ・ルフ': 'https://gamerch.com/monbas/1022095',
   'ワッカ＆カムイ': 'https://gamerch.com/monbas/259483',
   'ヴィシュヌ': 'https://gamerch.com/monbas/862449',
   '三蔵法師': 'https://gamerch.com/monbas/795786',
@@ -410,6 +414,7 @@ const MONSTER_DATA = `
 ゾンビフルフル|魔獣|闇|雷＆闇|8|8|4|20|0|4
 タナトス|魔神|闇|闇|10|0|0|15|15|0
 タニグク|神族|水|水|10|0|10|0|0|0
+チェシャ猫・アリオク|魔神|光|火＆光＆闇|15|0|15|5|0|0
 タラスク|魔獣|水|水＆闇|10|13|0|10|0|0
 チビサタン|魔神|闇|魔神|5|5|5|20|20|0
 ツイゴアブ|魔神|風|風|8|0|10|4|0|0
@@ -466,6 +471,7 @@ const MONSTER_DATA = `
 リズ＆ディア【猫コスver】|魔族|無|無・火・水・雷・風・光・闇|7|7|7|7|7|7
 リンゴ|異端|無|異端|5|5|5|20|20|0
 ルフ|飛天|雷|雷|5|5|5|10|0|0
+ロックウィッチ・ルフ|飛天|雷|雷|10|0|20|0|0|0
 ロキ|魔神|無|魔神|8|8|0|10|5|0
 ワッカ＆カムイ|神族|水|水|0|8|0|15|15|0
 ヴィシュヌ|神族|無|神族＆飛天＆聖人＆聖獣|0|10|0|25|20|0
