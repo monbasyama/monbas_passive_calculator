@@ -14,7 +14,7 @@ const PASSIVE_STATS = [
   { key: 'sp', label: 'SP', shortLabel: 'SP' },
   { key: 'crt', label: 'Crt', shortLabel: 'Cr' }
 ];
-const MONSTER_DATA_VERSION = '2026-10-monster-urls-2';
+const MONSTER_DATA_VERSION = '2026-10-monster-urls-3';
 const MONSTER_MANAGER_PASSWORD = '0888';
 const LEGACY_SAMPLE_IDS = new Set([
   'monster-fire-dragon',
