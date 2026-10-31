@@ -918,6 +918,137 @@ function generatePdfFromParties() {
   });
 }
 
+const AI_STAT_KEYWORDS = {
+  attack: ['攻撃力', '攻撃', '攻'],
+  defense: ['防御力', '防御', '防'],
+  agility: ['素早さ', 'すばやさ', '素早', '速度', '敏捷'],
+  hp: ['hp', 'ＨＰ', '体力'],
+  sp: ['sp', 'ＳＰ'],
+  crt: ['crt', 'クリティカル', 'クリ']
+};
+
+function parseAiStats(text) {
+  const lower = text.toLowerCase();
+  return PASSIVE_STATS.map(({ key }) => key).filter((key) => AI_STAT_KEYWORDS[key].some((word) => lower.includes(word.toLowerCase())));
+}
+
+const AI_PARTY_SIZE = 5;
+
+function parseAiTargets(text) {
+  return [...RACE_OPTIONS, ...ELEMENT_OPTIONS].filter((target) => text.includes(target));
+}
+
+function scorePartyForStats(slotIds, statKeys) {
+  const party = { slots: slotIds };
+  return slotIds.reduce((sum, id, index) => {
+    const monster = monsters.find((m) => m.id === id);
+    if (!monster) return sum;
+    const bonuses = getPassiveBonuses(party, index, monster);
+    return sum + statKeys.reduce((s, key) => s + (Number(monster[key]) || 0) + bonuses[key], 0);
+  }, 0);
+}
+
+function buildBestParty(statKeys, targets = []) {
+  const pool = monsters.filter((m) => statKeys.some((key) => m[key] > 0)
+    && (!targets.length || targets.some((t) => m.passiveTarget.includes(t))));
+  const size = Math.min(AI_PARTY_SIZE, pool.length);
+  if (!size) return null;
+
+  const ranked = [...pool].sort((a, b) => statKeys.reduce((s, k) => s + b[k] - a[k], 0));
+  let best = null;
+  let bestScore = -1;
+
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    let current = attempt === 0
+      ? ranked.slice(0, size).map((m) => m.id)
+      : [...pool].sort(() => Math.random() - 0.5).slice(0, size).map((m) => m.id);
+    let score = scorePartyForStats(current, statKeys);
+    let improved = true;
+    while (improved) {
+      improved = false;
+      for (let i = 0; i < size; i += 1) {
+        for (const candidate of pool) {
+          if (current.includes(candidate.id)) continue;
+          const next = [...current];
+          next[i] = candidate.id;
+          const nextScore = scorePartyForStats(next, statKeys);
+          if (nextScore > score) {
+            current = next;
+            score = nextScore;
+            improved = true;
+          }
+        }
+      }
+    }
+    if (score > bestScore) {
+      best = current;
+      bestScore = score;
+    }
+  }
+
+  return { slots: [...best, ...Array(6 - size).fill('')], score: bestScore };
+}
+
+function appendAiMessage(role, text) {
+  const log = document.getElementById('ai-chat-log');
+  if (!log) return;
+  const item = document.createElement('div');
+  item.className = `ai-chat-message ai-chat-${role}`;
+  item.textContent = text;
+  log.appendChild(item);
+  log.scrollTop = log.scrollHeight;
+}
+
+function handleAiSearch(text) {
+  appendAiMessage('user', text);
+  const statKeys = parseAiStats(text);
+  if (!statKeys.length) {
+    appendAiMessage('bot', '対象のステータスを認識できませんでした。「攻撃力」「防御力」「素早さ」「HP」「SP」「Crt」のいずれかを含めて入力してください。');
+    return;
+  }
+
+  const targets = parseAiTargets(text);
+  const result = buildBestParty(statKeys, targets);
+  const statLabels = PASSIVE_STATS.filter(({ key }) => statKeys.includes(key)).map(({ label }) => label).join('・');
+  const targetLabels = targets.join('・');
+  const labels = targets.length ? `${targetLabels}パッシブの${statLabels}` : statLabels;
+  if (!result) {
+    appendAiMessage('bot', `${labels}に該当するモンスターが登録されていません。`);
+    return;
+  }
+
+  const hasEmptyParty = parties.length === 1 && parties[0].slots.every((id) => !id);
+  const party = createNewParty();
+  party.slots = result.slots;
+  if (hasEmptyParty) parties = [party]; else parties.push(party);
+  saveParties();
+  renderParties();
+
+  const names = result.slots.map((id) => monsters.find((m) => m.id === id)).filter(Boolean).map((m) => m.name).join('、');
+  appendAiMessage('bot', `${labels}が高いパーティーを追加しました（合計${result.score}）: ${names}`);
+}
+
+function initializeAiSearch() {
+  const button = document.getElementById('ai-search-btn');
+  const panel = document.getElementById('ai-search-panel');
+  const input = document.getElementById('ai-chat-input');
+  if (!button || !panel || !input) return;
+
+  button.addEventListener('click', () => {
+    panel.hidden = !panel.hidden;
+    button.setAttribute('aria-expanded', String(!panel.hidden));
+    if (!panel.hidden) input.focus();
+  });
+
+  panel.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    handleAiSearch(text);
+  });
+}
+
 function initializePartyPage() {
   monsters = loadMonsters();
   parties = loadParties();
@@ -956,6 +1087,8 @@ function initializePartyPage() {
       await refreshMonsterDataWithPopup(renderParties);
     });
   }
+
+  initializeAiSearch();
 
   if (ui.partyRoot) {
     renderParties();
