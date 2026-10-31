@@ -24,7 +24,33 @@
           <a href="monster-search.html" class="secondary-btn inline-link" style="flex-basis:100%"><i class="fas fa-search" aria-hidden="true"></i>モンスター検索</a>
           <button id="ai-search-btn" type="button" class="secondary-btn" style="flex-basis:100%" aria-expanded="false" aria-controls="ai-search-panel"><i class="fas fa-robot" aria-hidden="true"></i>AI検索</button>
           <form id="ai-search-panel" class="ai-search-panel" hidden style="flex-basis:100%">
-            <div class="ai-panel-header"><i class="fas fa-robot" aria-hidden="true"></i>AI検索<span class="ai-panel-badge">AI</span></div>
+            <div class="ai-panel-header"><i class="fas fa-robot" aria-hidden="true"></i>AI検索<span class="ai-panel-badge">AI</span><button type="button" id="ai-help-btn" class="ai-help-btn" aria-label="AI検索の使い方" aria-expanded="false" aria-controls="ai-help-panel"><i class="fas fa-question" aria-hidden="true"></i></button></div>
+            <div id="ai-help-panel" class="ai-help-panel" hidden>
+              <h3>AI検索の使い方</h3>
+              <p>ステータスを含む文章を入力すると、パッシブ反映後の値が高いパーティーを上位3つ提案します。チェックして「選択したパーティーを追加」で一覧に追加できます。</p>
+              <ul>
+                <li><b>ステータス</b>: 攻撃力 / 防御力 / 素早さ / HP / SP / Crt（複数指定は合計）</li>
+                <li><b>種族・属性</b>: 魔神、光 など。「魔神パッシブ」のように書くと、そのパッシブ対象を持つモンスターから選びます</li>
+                <li><b>含む</b>: 「〇〇を含む」「〇〇、△△を含む」で指定モンスターを固定</li>
+                <li><b>除外</b>: 「〇〇以外」「〇〇と△△を除いて」で候補から除外</li>
+                <li><b>1体最大</b>: 「1体の素早さが最も高い」で1体の値が最大になる組み合わせ</li>
+                <li><b>モンスター指定</b>: 「〇〇の素早さが最も高くなる」で、そのモンスターの値を最大化</li>
+                <li><b>数値条件</b>: 「N体の素早さが100以上」「100〜150」「100から150」「200以下」「未満」「超」「100ちょうど」</li>
+              </ul>
+              <p class="ai-help-sub">入力例（タップで入力欄に入ります）</p>
+              <div class="ai-help-examples">
+                <button type="button" class="ai-example-btn">素早さのパッシブが高いパーティを作成して</button>
+                <button type="button" class="ai-example-btn">魔神パッシブでHPが高いパーティを作成して</button>
+                <button type="button" class="ai-example-btn">光パッシブで素早さが高いパーティを作成して</button>
+                <button type="button" class="ai-example-btn">天璋院ひめの以外で攻撃力の高い異端パーティを教えて</button>
+                <button type="button" class="ai-example-btn">終焉の黒翼ベルゼブブを含む攻撃力、素早さが高いパーティ</button>
+                <button type="button" class="ai-example-btn">1体の素早さが最も高いパーティを教えて</button>
+                <button type="button" class="ai-example-btn">優柔不断コアトルの素早さが最も高くなるパーティ</button>
+                <button type="button" class="ai-example-btn">1体の素早さが100以上になるパーティを教えて</button>
+                <button type="button" class="ai-example-btn">3体のHPが130以上になるパーティを教えて</button>
+                <button type="button" class="ai-example-btn">2体の攻撃力が50〜60のパーティ</button>
+              </div>
+            </div>
             <div id="ai-chat-log" class="ai-chat-log" aria-live="polite"></div>
             <textarea id="ai-chat-input" class="ai-chat-input" rows="3" maxlength="200" placeholder="AIへの質問を入力&#10;例: 素早さのパッシブが高いパーティを作成して" autocomplete="off"></textarea>
             <ul id="ai-chat-suggest" class="ai-chat-suggest" role="listbox" aria-label="モンスター名の候補" hidden></ul>

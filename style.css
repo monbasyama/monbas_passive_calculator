@@ -1098,3 +1098,16 @@ select {
 .ai-chat-suggest[hidden] { display: none; }
 .ai-suggest-item { min-height: 36px; padding: 0 12px; border: 1px solid #c4b5fd; border-radius: 999px; background: #fff; color: #5b21b6; font: inherit; font-size: 0.85rem; cursor: pointer; }
 .ai-suggest-item:hover, .ai-suggest-item:focus { background: #ede9fe; }
+.ai-help-btn { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #7c3aed; background: #fff; color: #7c3aed; font-weight: 700; cursor: pointer; }
+.ai-help-btn[aria-expanded="true"] { background: #7c3aed; color: #fff; }
+.ai-help-panel { padding: 10px 12px; border-radius: 10px; background: #fff; border: 1px solid #ddd6fe; font-size: 0.85rem; line-height: 1.6; max-height: 320px; overflow-y: auto; }
+.ai-help-panel[hidden] { display: none; }
+.ai-help-panel h3 { margin: 0 0 4px; font-size: 0.95rem; color: #5b21b6; }
+.ai-help-panel p { margin: 0 0 6px; }
+.ai-help-panel ul { margin: 0 0 8px; padding-left: 1.2em; }
+.ai-help-sub { font-weight: 700; color: #5b21b6; }
+.ai-help-examples { display: flex; flex-direction: column; gap: 6px; }
+.ai-example-btn { text-align: left; min-height: 40px; padding: 6px 10px; border: 1px dashed #a78bfa; border-radius: 8px; background: #faf5ff; color: #1f2937; font: inherit; cursor: pointer; }
+.ai-example-btn:hover { background: #ede9fe; }
+.ai-chat-reusable { cursor: pointer; }
+.ai-chat-reusable:hover { background: #bfdbfe; }
