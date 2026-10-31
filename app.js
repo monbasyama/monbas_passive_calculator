@@ -1028,8 +1028,8 @@ function classifyMentionedMonsters(text) {
   mentions = mentions.filter((x) => !mentions.some((y) => y !== x && y.monster.name.length > x.monster.name.length && y.monster.name.includes(x.monster.name)));
   mentions.sort((a, b) => a.index - b.index);
 
-  const excludeWords = /^.{0,3}?(以外|を?除外|を?除いて|を?除く|抜き|を?抜いて|なし|無し)/;
-  const includeWords = /^.{0,3}?(を?含む|を?含めて|を?含んだ|を?入れて|を?入れた|が入った|を?必ず|を?固定)/;
+  const excludeWords = /^.{0,3}?(以外|を?除外|を?除いて|を?除いた|を?除き|を?除く|抜き|を?抜いて|を?外して|なし|無し)/;
+  const includeWords = /^.{0,3}?(を?含む|を?含め|を?含み|を?含んで|を?含んだ|を?入れて|を?入れた|が入った|を?必ず|を?固定)/;
   let carried = null;
   mentions.slice().reverse().forEach((mention) => {
     const rest = text.slice(mention.index + mention.monster.name.length);
@@ -1037,7 +1037,7 @@ function classifyMentionedMonsters(text) {
     const segment = nextMention ? rest.slice(0, nextMention.index - mention.index - mention.monster.name.length) : rest;
     if (excludeWords.test(segment)) mention.mode = 'exclude';
     else if (includeWords.test(segment)) mention.mode = 'include';
-    else if (nextMention && /^[とや、,・&＆及び]*$/.test(segment)) mention.mode = carried;
+    else if (nextMention && /^(\s|と|や|も|、|,|，|・|&|＆|および|及び|ならびに|並びに|かつ|それと|あと)*$/.test(segment)) mention.mode = carried;
     else mention.mode = null;
     carried = mention.mode;
   });
@@ -1121,7 +1121,18 @@ function appendAiPartyChoices(results, intro, single = false, hasCondition = fal
     appendAiMessage('bot', `${selected.length}件のパーティーを追加しました。`);
   });
 
-  message.append(list, addButton);
+  const makeToggle = (text, checked) => {
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'secondary-btn';
+    toggle.textContent = text;
+    toggle.addEventListener('click', () => {
+      list.querySelectorAll('input').forEach((input) => { input.checked = checked; });
+    });
+    return toggle;
+  };
+
+  message.append(list, makeToggle('全選択', true), makeToggle('全解除', false), addButton);
 }
 
 function handleAiSearch(text) {
