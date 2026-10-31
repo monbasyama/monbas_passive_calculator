@@ -1192,6 +1192,19 @@ function handleAiSearch(text) {
   appendAiPartyChoices(results, `${intro}${notes ? `（${notes}）` : ''}。追加するものにチェックしてください。`, single, Boolean(condition));
 }
 
+function findMonsterSuggestions(textBeforeCaret) {
+  const maxLength = Math.min(20, textBeforeCaret.length);
+  for (let length = maxLength; length >= 2; length -= 1) {
+    const fragment = textBeforeCaret.slice(-length);
+    if (/[\s、,，。]/.test(fragment)) continue;
+    const matches = monsters
+      .filter((m) => m.name.includes(fragment) && m.name !== fragment)
+      .sort((a, b) => Number(b.name.startsWith(fragment)) - Number(a.name.startsWith(fragment)));
+    if (matches.length) return { fragment, matches: matches.slice(0, 8) };
+  }
+  return null;
+}
+
 function initializeAiSearch() {
   const button = document.getElementById('ai-search-btn');
   const panel = document.getElementById('ai-search-panel');
@@ -1205,9 +1218,49 @@ function initializeAiSearch() {
     if (!panel.hidden) input.focus();
   });
 
+  const suggestList = document.getElementById('ai-chat-suggest');
+  const hideSuggestions = () => {
+    if (!suggestList) return;
+    suggestList.hidden = true;
+    suggestList.replaceChildren();
+  };
+  const showSuggestions = () => {
+    if (!suggestList) return;
+    const caret = input.selectionStart;
+    const found = findMonsterSuggestions(input.value.slice(0, caret));
+    hideSuggestions();
+    if (!found) return;
+
+    found.matches.forEach((monster) => {
+      const item = document.createElement('li');
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.className = 'ai-suggest-item';
+      option.setAttribute('role', 'option');
+      option.textContent = monster.name;
+      option.addEventListener('mousedown', (event) => event.preventDefault());
+      option.addEventListener('click', () => {
+        const before = input.value.slice(0, caret - found.fragment.length);
+        const after = input.value.slice(caret);
+        input.value = `${before}${monster.name}${after}`;
+        const position = before.length + monster.name.length;
+        input.focus();
+        input.setSelectionRange(position, position);
+        hideSuggestions();
+      });
+      item.appendChild(option);
+      suggestList.appendChild(item);
+    });
+    suggestList.hidden = false;
+  };
+
+  input.addEventListener('input', showSuggestions);
+  input.addEventListener('blur', () => setTimeout(hideSuggestions, 150));
+
   if (clearButton) {
     clearButton.addEventListener('click', () => {
       input.value = '';
+      hideSuggestions();
       const log = document.getElementById('ai-chat-log');
       if (log) log.replaceChildren();
       input.focus();
@@ -1223,6 +1276,7 @@ function initializeAiSearch() {
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
+    hideSuggestions();
     handleAiSearch(text);
   });
 }
