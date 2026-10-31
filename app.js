@@ -938,61 +938,71 @@ function parseAiTargets(text) {
   return [...RACE_OPTIONS, ...ELEMENT_OPTIONS].filter((target) => text.includes(target));
 }
 
-function scorePartyForStats(slotIds, statKeys) {
+function scorePartyForStats(slotIds, statKeys, single = false) {
   const party = { slots: slotIds };
-  return slotIds.reduce((sum, id, index) => {
+  const values = slotIds.map((id, index) => {
     const monster = monsters.find((m) => m.id === id);
-    if (!monster) return sum;
+    if (!monster) return 0;
     const bonuses = getPassiveBonuses(party, index, monster);
-    return sum + statKeys.reduce((s, key) => s + (Number(monster[key]) || 0) + bonuses[key], 0);
-  }, 0);
+    return statKeys.reduce((s, key) => s + (Number(monster[key]) || 0) + bonuses[key], 0);
+  });
+  const total = values.reduce((sum, v) => sum + v, 0);
+  return single ? { score: Math.max(0, ...values), total } : { score: total, total };
 }
 
-function optimizeParty(pool, statKeys) {
-  const size = Math.min(AI_PARTY_SIZE, pool.length);
-  if (!size) return null;
+function optimizeParty(pool, statKeys, fixedIds = [], single = false) {
+  const size = Math.min(AI_PARTY_SIZE, pool.length + fixedIds.length);
+  const freeCount = size - fixedIds.length;
+  if (size <= 0) return null;
 
+  // 単体モードは最大値が同点でも合計が高い方を優先して探索を進める
+  const evaluate = (ids) => {
+    const { score, total } = scorePartyForStats(ids, statKeys, single);
+    return { score, rank: single ? score * 1000 + total : score };
+  };
   const ranked = [...pool].sort((a, b) => statKeys.reduce((s, k) => s + b[k] - a[k], 0));
   let best = null;
-  let bestScore = -1;
+  let bestEval = { score: -1, rank: -1 };
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
-    let current = attempt === 0
-      ? ranked.slice(0, size).map((m) => m.id)
-      : [...pool].sort(() => Math.random() - 0.5).slice(0, size).map((m) => m.id);
-    let score = scorePartyForStats(current, statKeys);
+    const free = attempt === 0
+      ? ranked.slice(0, freeCount).map((m) => m.id)
+      : [...pool].sort(() => Math.random() - 0.5).slice(0, freeCount).map((m) => m.id);
+    let current = [...fixedIds, ...free];
+    let currentEval = evaluate(current);
     let improved = true;
     while (improved) {
       improved = false;
-      for (let i = 0; i < size; i += 1) {
+      for (let i = fixedIds.length; i < size; i += 1) {
         for (const candidate of pool) {
           if (current.includes(candidate.id)) continue;
           const next = [...current];
           next[i] = candidate.id;
-          const nextScore = scorePartyForStats(next, statKeys);
-          if (nextScore > score) {
+          const nextEval = evaluate(next);
+          if (nextEval.rank > currentEval.rank) {
             current = next;
-            score = nextScore;
+            currentEval = nextEval;
             improved = true;
           }
         }
       }
     }
-    if (score > bestScore) {
+    if (currentEval.rank > bestEval.rank) {
       best = current;
-      bestScore = score;
+      bestEval = currentEval;
     }
   }
 
-  return { slots: [...best, ...Array(6 - size).fill('')], score: bestScore };
+  return { slots: [...best, ...Array(6 - size).fill('')], score: bestEval.score, rank: bestEval.rank };
 }
 
-function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count = 3) {
+function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count = 3, includedIds = [], single = false) {
   const pool = monsters.filter((m) => !excludedIds.has(m.id)
+    && !includedIds.includes(m.id)
     && statKeys.some((key) => m[key] > 0)
     && (!targets.length || targets.some((t) => m.passiveTarget.includes(t))));
 
-  const first = optimizeParty(pool, statKeys);
+  const first = optimizeParty(pool, statKeys, includedIds, single);
   if (!first) return [];
 
   const results = new Map();
@@ -1000,9 +1010,37 @@ function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count 
     if (result) results.set([...result.slots].filter(Boolean).sort().join(','), result);
   };
   addResult(first);
-  first.slots.filter(Boolean).forEach((id) => addResult(optimizeParty(pool.filter((m) => m.id !== id), statKeys)));
+  first.slots.filter((id) => id && !includedIds.includes(id))
+    .forEach((id) => addResult(optimizeParty(pool.filter((m) => m.id !== id), statKeys, includedIds, single)));
 
-  return [...results.values()].sort((a, b) => b.score - a.score).slice(0, count);
+  return [...results.values()].sort((a, b) => b.rank - a.rank).slice(0, count);
+}
+
+function classifyMentionedMonsters(text) {
+  let mentions = monsters
+    .filter((m) => m.name.length >= 2 && text.includes(m.name))
+    .map((m) => ({ monster: m, index: text.indexOf(m.name) }));
+  mentions = mentions.filter((x) => !mentions.some((y) => y !== x && y.monster.name.length > x.monster.name.length && y.monster.name.includes(x.monster.name)));
+  mentions.sort((a, b) => a.index - b.index);
+
+  const excludeWords = /^.{0,3}?(以外|を?除外|を?除いて|を?除く|抜き|を?抜いて|なし|無し)/;
+  const includeWords = /^.{0,3}?(を?含む|を?含めて|を?含んだ|を?入れて|を?入れた|が入った|を?必ず|を?固定)/;
+  let carried = null;
+  mentions.slice().reverse().forEach((mention) => {
+    const rest = text.slice(mention.index + mention.monster.name.length);
+    const nextMention = mentions.find((x) => x.index > mention.index);
+    const segment = nextMention ? rest.slice(0, nextMention.index - mention.index - mention.monster.name.length) : rest;
+    if (excludeWords.test(segment)) mention.mode = 'exclude';
+    else if (includeWords.test(segment)) mention.mode = 'include';
+    else if (nextMention && /^[とや、,・&＆及び]*$/.test(segment)) mention.mode = carried;
+    else mention.mode = null;
+    carried = mention.mode;
+  });
+  return mentions;
+}
+
+function parseAiSingleMode(text) {
+  return /(1体|一体|単体|1匹|一匹)/.test(text);
 }
 
 function appendAiMessage(role, text) {
@@ -1016,7 +1054,7 @@ function appendAiMessage(role, text) {
   return item;
 }
 
-function appendAiPartyChoices(results, intro) {
+function appendAiPartyChoices(results, intro, single = false) {
   const message = appendAiMessage('bot', intro);
   if (!message) return;
 
@@ -1028,7 +1066,7 @@ function appendAiPartyChoices(results, intro) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     const names = result.slots.map((id) => monsters.find((m) => m.id === id)).filter(Boolean).map((m) => m.name).join('、');
-    label.append(checkbox, ` ${index + 1}位（合計${result.score}）: ${names}`);
+    label.append(checkbox, ` ${index + 1}位（${single ? '最大' : '合計'}${result.score}）: ${names}`);
     list.appendChild(label);
   });
 
@@ -1056,10 +1094,10 @@ function handleAiSearch(text) {
   appendAiMessage('user', text);
 
   // 名前の一部がステータス・種族語と誤認されないよう、モンスター名を除去してから解析する
-  const mentioned = monsters.filter((m) => m.name.length >= 2 && text.includes(m.name));
-  const hasExclusionWord = /以外|除外|除いて|除く|抜き|抜いて|なし|無し/.test(text);
-  const excludedIds = new Set(hasExclusionWord ? mentioned.map((m) => m.id) : []);
-  const cleaned = mentioned.reduce((acc, m) => acc.split(m.name).join(' '), text);
+  const mentions = classifyMentionedMonsters(text);
+  const excluded = mentions.filter((x) => x.mode === 'exclude').map((x) => x.monster);
+  const included = mentions.filter((x) => x.mode === 'include').map((x) => x.monster).slice(0, AI_PARTY_SIZE);
+  const cleaned = mentions.reduce((acc, x) => acc.split(x.monster.name).join(' '), text);
 
   const statKeys = parseAiStats(cleaned);
   if (!statKeys.length) {
@@ -1068,16 +1106,20 @@ function handleAiSearch(text) {
   }
 
   const targets = parseAiTargets(cleaned);
-  const results = buildTopParties(statKeys, targets, excludedIds);
+  const single = parseAiSingleMode(cleaned);
+  const results = buildTopParties(statKeys, targets, new Set(excluded.map((m) => m.id)), 3, included.map((m) => m.id), single);
   const statLabels = PASSIVE_STATS.filter(({ key }) => statKeys.includes(key)).map(({ label }) => label).join('・');
-  const labels = targets.length ? `${targets.join('・')}パッシブの${statLabels}` : statLabels;
+  const labels = `${targets.length ? `${targets.join('・')}パッシブの` : ''}${single ? '1体の' : ''}${statLabels}`;
   if (!results.length) {
     appendAiMessage('bot', `${labels}に該当するモンスターが見つかりませんでした。`);
     return;
   }
 
-  const excludeNote = excludedIds.size ? `（除外: ${mentioned.map((m) => m.name).join('、')}）` : '';
-  appendAiPartyChoices(results, `${labels}が高いパーティー候補です${excludeNote}。追加するものにチェックしてください。`);
+  const notes = [
+    excluded.length ? `除外: ${excluded.map((m) => m.name).join('、')}` : '',
+    included.length ? `含む: ${included.map((m) => m.name).join('、')}` : ''
+  ].filter(Boolean).join(' / ');
+  appendAiPartyChoices(results, `${labels}が高いパーティー候補です${notes ? `（${notes}）` : ''}。追加するものにチェックしてください。`, single);
 }
 
 function initializeAiSearch() {
