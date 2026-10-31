@@ -22,6 +22,14 @@
           <button id="party-compare-btn" class="secondary-btn"><i class="fas fa-scale-balanced" aria-hidden="true"></i>パーティー比較</button>
           <button id="pdf-export-btn" class="primary-btn" style="flex-basis:100%"><i class="fas fa-file-pdf" aria-hidden="true"></i>PDF出力</button>
           <a href="monster-search.html" class="secondary-btn inline-link" style="flex-basis:100%"><i class="fas fa-search" aria-hidden="true"></i>モンスター検索</a>
+          <button id="ai-search-btn" type="button" class="secondary-btn" style="flex-basis:100%" aria-expanded="false" aria-controls="ai-search-panel"><i class="fas fa-robot" aria-hidden="true"></i>AI検索</button>
+          <form id="ai-search-panel" class="ai-search-panel" hidden style="flex-basis:100%">
+            <div id="ai-chat-log" class="ai-chat-log" aria-live="polite"></div>
+            <div class="ai-chat-input-row">
+              <input id="ai-chat-input" type="text" maxlength="200" placeholder="例: 素早さのパッシブが高いパーティを作成して" autocomplete="off" />
+              <button type="submit" class="primary-btn">送信</button>
+            </div>
+          </form>
           <button id="party-refresh-data" type="button" class="secondary-btn" style="flex-basis:100%"><i class="fas fa-sync-alt" aria-hidden="true"></i>最新データ取得</button>
         </div>
         <span class="app-version" id="app-version">ver 1.0</span>

@@ -1076,3 +1076,11 @@ select {
     align-items: flex-start;
   }
 }
+
+.ai-search-panel { display: flex; flex-direction: column; gap: 8px; }
+.ai-search-panel[hidden] { display: none; }
+.ai-chat-log { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.ai-chat-message { padding: 6px 10px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5; max-width: 90%; background: #eef2ff; color: #1f2937; }
+.ai-chat-user { align-self: flex-end; background: #dbeafe; }
+.ai-chat-input-row { display: flex; gap: 6px; }
+.ai-chat-input-row input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
