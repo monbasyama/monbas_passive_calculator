@@ -1052,10 +1052,12 @@ function parseAiCondition(text) {
 
   let min = -Infinity;
   let max = Infinity;
-  const range = t.match(/(\d+)\s*[〜~ー-]\s*(\d+)/);
+  const range = t.match(/(\d+)\s*(?:[〜~ー-]|から)\s*(\d+)/);
   if (range) {
     min = Number(range[1]);
     max = Number(range[2]);
+  } else if (/(\d+)\s*(ちょうど|丁度|ぴったり|と同じ)/.test(t)) {
+    min = max = Number(t.match(/(\d+)\s*(?:ちょうど|丁度|ぴったり|と同じ)/)[1]);
   } else {
     const lower = t.match(/(\d+)\s*(以上|超)/);
     const upper = t.match(/(\d+)\s*(以下|未満)/);
