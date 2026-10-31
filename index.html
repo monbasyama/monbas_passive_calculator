@@ -24,11 +24,12 @@
           <a href="monster-search.html" class="secondary-btn inline-link" style="flex-basis:100%"><i class="fas fa-search" aria-hidden="true"></i>モンスター検索</a>
           <button id="ai-search-btn" type="button" class="secondary-btn" style="flex-basis:100%" aria-expanded="false" aria-controls="ai-search-panel"><i class="fas fa-robot" aria-hidden="true"></i>AI検索</button>
           <form id="ai-search-panel" class="ai-search-panel" hidden style="flex-basis:100%">
+            <div class="ai-panel-header"><i class="fas fa-robot" aria-hidden="true"></i>AI検索<span class="ai-panel-badge">AI</span></div>
             <div id="ai-chat-log" class="ai-chat-log" aria-live="polite"></div>
-            <div class="ai-chat-input-row">
-              <input id="ai-chat-input" type="text" maxlength="200" placeholder="例: 素早さのパッシブが高いパーティを作成して" autocomplete="off" />
-              <button type="button" id="ai-chat-clear" class="secondary-btn" aria-label="チャット結果をクリア"><i class="fas fa-eraser" aria-hidden="true"></i>クリア</button>
-              <button type="submit" class="primary-btn">送信</button>
+            <textarea id="ai-chat-input" class="ai-chat-input" rows="3" maxlength="200" placeholder="AIへの質問を入力&#10;例: 素早さのパッシブが高いパーティを作成して" autocomplete="off"></textarea>
+            <div class="ai-chat-actions">
+              <button type="button" id="ai-chat-clear" class="ai-clear-btn" aria-label="チャット結果をクリア"><i class="fas fa-eraser" aria-hidden="true"></i>クリア</button>
+              <button type="submit" class="ai-send-btn"><i class="fas fa-paper-plane" aria-hidden="true"></i>AIに送信</button>
             </div>
           </form>
           <button id="party-refresh-data" type="button" class="secondary-btn" style="flex-basis:100%"><i class="fas fa-sync-alt" aria-hidden="true"></i>最新データ取得</button>
