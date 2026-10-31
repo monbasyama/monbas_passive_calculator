@@ -938,7 +938,7 @@ function parseAiTargets(text) {
   return [...RACE_OPTIONS, ...ELEMENT_OPTIONS].filter((target) => text.includes(target));
 }
 
-function scorePartyForStats(slotIds, statKeys, single = false) {
+function scorePartyForStats(slotIds, statKeys, single = false, focusId = '') {
   const party = { slots: slotIds };
   const values = slotIds.map((id, index) => {
     const monster = monsters.find((m) => m.id === id);
@@ -946,18 +946,22 @@ function scorePartyForStats(slotIds, statKeys, single = false) {
     const bonuses = getPassiveBonuses(party, index, monster);
     return statKeys.reduce((s, key) => s + (Number(monster[key]) || 0) + bonuses[key], 0);
   });
+  if (focusId) {
+    const focusValue = values[slotIds.indexOf(focusId)] || 0;
+    return { score: focusValue, total: focusValue, values: [focusValue] };
+  }
   const total = values.reduce((sum, v) => sum + v, 0);
   return { score: single ? Math.max(0, ...values) : total, total, values };
 }
 
-function optimizeParty(pool, statKeys, fixedIds = [], single = false, condition = null) {
+function optimizeParty(pool, statKeys, fixedIds = [], single = false, condition = null, focusId = '') {
   const size = Math.min(AI_PARTY_SIZE, pool.length + fixedIds.length);
   const freeCount = size - fixedIds.length;
   if (size <= 0) return null;
 
   // 単体モードは最大値が同点でも合計が高い方を優先して探索を進める
   const evaluate = (ids) => {
-    const { score, total, values } = scorePartyForStats(ids, statKeys, single);
+    const { score, total, values } = scorePartyForStats(ids, statKeys, single, focusId);
     if (!condition) return { score, rank: single ? score * 1000 + total : score };
 
     const satisfied = values.filter((v) => v >= condition.min && v <= condition.max).length;
@@ -1001,13 +1005,15 @@ function optimizeParty(pool, statKeys, fixedIds = [], single = false, condition 
   return { slots: [...best, ...Array(6 - size).fill('')], score: bestEval.score, rank: bestEval.rank };
 }
 
-function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count = 3, includedIds = [], single = false, condition = null) {
+function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count = 3, includedIds = [], single = false, condition = null, focusId = '') {
+  const focus = monsters.find((m) => m.id === focusId);
   const pool = monsters.filter((m) => !excludedIds.has(m.id)
+    && (!focus || m.passiveTarget.includes(focus.race) || m.passiveTarget.includes(focus.element))
     && !includedIds.includes(m.id)
     && (condition || statKeys.some((key) => m[key] > 0))
     && (!targets.length || targets.some((t) => m.passiveTarget.includes(t))));
 
-  const first = optimizeParty(pool, statKeys, includedIds, single, condition);
+  const first = optimizeParty(pool, statKeys, includedIds, single, condition, focusId);
   if (!first) return [];
 
   const results = new Map();
@@ -1016,7 +1022,7 @@ function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count 
   };
   addResult(first);
   first.slots.filter((id) => id && !includedIds.includes(id))
-    .forEach((id) => addResult(optimizeParty(pool.filter((m) => m.id !== id), statKeys, includedIds, single, condition)));
+    .forEach((id) => addResult(optimizeParty(pool.filter((m) => m.id !== id), statKeys, includedIds, single, condition, focusId)));
 
   return [...results.values()].sort((a, b) => b.rank - a.rank).slice(0, count);
 }
@@ -1038,6 +1044,7 @@ function classifyMentionedMonsters(text) {
     if (excludeWords.test(segment)) mention.mode = 'exclude';
     else if (includeWords.test(segment)) mention.mode = 'include';
     else if (nextMention && /^(\s|と|や|も|、|,|，|・|&|＆|および|及び|ならびに|並びに|かつ|それと|あと)*$/.test(segment)) mention.mode = carried;
+    else if (/^の/.test(segment)) mention.mode = 'focus';
     else mention.mode = null;
     carried = mention.mode;
   });
@@ -1141,7 +1148,11 @@ function handleAiSearch(text) {
   // 名前の一部がステータス・種族語と誤認されないよう、モンスター名を除去してから解析する
   const mentions = classifyMentionedMonsters(text);
   const excluded = mentions.filter((x) => x.mode === 'exclude').map((x) => x.monster);
-  const included = mentions.filter((x) => x.mode === 'include').map((x) => x.monster).slice(0, AI_PARTY_SIZE);
+  const focusMonster = (mentions.find((x) => x.mode === 'focus') || {}).monster;
+  const included = [
+    ...(focusMonster ? [focusMonster] : []),
+    ...mentions.filter((x) => x.mode === 'include').map((x) => x.monster)
+  ].filter((m, i, all) => all.indexOf(m) === i).slice(0, AI_PARTY_SIZE);
   const cleaned = mentions.reduce((acc, x) => acc.split(x.monster.name).join(' '), text);
 
   const statKeys = parseAiStats(cleaned);
@@ -1152,10 +1163,10 @@ function handleAiSearch(text) {
 
   const targets = parseAiTargets(cleaned);
   const condition = parseAiCondition(cleaned);
-  const single = !condition && parseAiSingleMode(cleaned);
-  let results = buildTopParties(statKeys, targets, new Set(excluded.map((m) => m.id)), 3, included.map((m) => m.id), single, condition);
+  const single = !condition && (Boolean(focusMonster) || parseAiSingleMode(cleaned));
+  let results = buildTopParties(statKeys, targets, new Set(excluded.map((m) => m.id)), 3, included.map((m) => m.id), single, condition, focusMonster ? focusMonster.id : '');
   const statLabels = PASSIVE_STATS.filter(({ key }) => statKeys.includes(key)).map(({ label }) => label).join('・');
-  const labels = `${targets.length ? `${targets.join('・')}パッシブの` : ''}${single ? '1体の' : ''}${statLabels}`;
+  const labels = `${targets.length ? `${targets.join('・')}パッシブの` : ''}${focusMonster ? `${focusMonster.name}の` : single ? '1体の' : ''}${statLabels}`;
   if (condition) {
     const bestCount = results.length ? results[0].score : 0;
     results = results.filter((r) => r.score >= condition.count);
