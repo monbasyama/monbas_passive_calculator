@@ -948,9 +948,7 @@ function scorePartyForStats(slotIds, statKeys) {
   }, 0);
 }
 
-function buildBestParty(statKeys, targets = []) {
-  const pool = monsters.filter((m) => statKeys.some((key) => m[key] > 0)
-    && (!targets.length || targets.some((t) => m.passiveTarget.includes(t))));
+function optimizeParty(pool, statKeys) {
   const size = Math.min(AI_PARTY_SIZE, pool.length);
   if (!size) return null;
 
@@ -958,7 +956,7 @@ function buildBestParty(statKeys, targets = []) {
   let best = null;
   let bestScore = -1;
 
-  for (let attempt = 0; attempt < 12; attempt += 1) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
     let current = attempt === 0
       ? ranked.slice(0, size).map((m) => m.id)
       : [...pool].sort(() => Math.random() - 0.5).slice(0, size).map((m) => m.id);
@@ -989,49 +987,104 @@ function buildBestParty(statKeys, targets = []) {
   return { slots: [...best, ...Array(6 - size).fill('')], score: bestScore };
 }
 
+function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count = 3) {
+  const pool = monsters.filter((m) => !excludedIds.has(m.id)
+    && statKeys.some((key) => m[key] > 0)
+    && (!targets.length || targets.some((t) => m.passiveTarget.includes(t))));
+
+  const first = optimizeParty(pool, statKeys);
+  if (!first) return [];
+
+  const results = new Map();
+  const addResult = (result) => {
+    if (result) results.set([...result.slots].filter(Boolean).sort().join(','), result);
+  };
+  addResult(first);
+  first.slots.filter(Boolean).forEach((id) => addResult(optimizeParty(pool.filter((m) => m.id !== id), statKeys)));
+
+  return [...results.values()].sort((a, b) => b.score - a.score).slice(0, count);
+}
+
 function appendAiMessage(role, text) {
   const log = document.getElementById('ai-chat-log');
-  if (!log) return;
+  if (!log) return null;
   const item = document.createElement('div');
   item.className = `ai-chat-message ai-chat-${role}`;
   item.textContent = text;
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
+  return item;
+}
+
+function appendAiPartyChoices(results, intro) {
+  const message = appendAiMessage('bot', intro);
+  if (!message) return;
+
+  const list = document.createElement('div');
+  list.className = 'ai-party-choices';
+  results.forEach((result, index) => {
+    const label = document.createElement('label');
+    label.className = 'ai-party-choice';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    const names = result.slots.map((id) => monsters.find((m) => m.id === id)).filter(Boolean).map((m) => m.name).join('、');
+    label.append(checkbox, ` ${index + 1}位（合計${result.score}）: ${names}`);
+    list.appendChild(label);
+  });
+
+  const addButton = document.createElement('button');
+  addButton.type = 'button';
+  addButton.className = 'secondary-btn';
+  addButton.textContent = '選択したパーティーを追加';
+  addButton.addEventListener('click', () => {
+    const selected = results.filter((_, i) => list.querySelectorAll('input')[i].checked);
+    if (!selected.length) return;
+
+    const hasEmptyParty = parties.length === 1 && parties[0].slots.every((id) => !id);
+    const added = selected.map((result) => ({ ...createNewParty(), slots: result.slots }));
+    parties = hasEmptyParty ? added : [...parties, ...added];
+    saveParties();
+    renderParties();
+    list.querySelectorAll('input').forEach((input) => { input.checked = false; });
+    appendAiMessage('bot', `${selected.length}件のパーティーを追加しました。`);
+  });
+
+  message.append(list, addButton);
 }
 
 function handleAiSearch(text) {
   appendAiMessage('user', text);
-  const statKeys = parseAiStats(text);
+
+  // 名前の一部がステータス・種族語と誤認されないよう、モンスター名を除去してから解析する
+  const mentioned = monsters.filter((m) => m.name.length >= 2 && text.includes(m.name));
+  const hasExclusionWord = /以外|除外|除いて|除く|抜き|抜いて|なし|無し/.test(text);
+  const excludedIds = new Set(hasExclusionWord ? mentioned.map((m) => m.id) : []);
+  const cleaned = mentioned.reduce((acc, m) => acc.split(m.name).join(' '), text);
+
+  const statKeys = parseAiStats(cleaned);
   if (!statKeys.length) {
     appendAiMessage('bot', '対象のステータスを認識できませんでした。「攻撃力」「防御力」「素早さ」「HP」「SP」「Crt」のいずれかを含めて入力してください。');
     return;
   }
 
-  const targets = parseAiTargets(text);
-  const result = buildBestParty(statKeys, targets);
+  const targets = parseAiTargets(cleaned);
+  const results = buildTopParties(statKeys, targets, excludedIds);
   const statLabels = PASSIVE_STATS.filter(({ key }) => statKeys.includes(key)).map(({ label }) => label).join('・');
-  const targetLabels = targets.join('・');
-  const labels = targets.length ? `${targetLabels}パッシブの${statLabels}` : statLabels;
-  if (!result) {
-    appendAiMessage('bot', `${labels}に該当するモンスターが登録されていません。`);
+  const labels = targets.length ? `${targets.join('・')}パッシブの${statLabels}` : statLabels;
+  if (!results.length) {
+    appendAiMessage('bot', `${labels}に該当するモンスターが見つかりませんでした。`);
     return;
   }
 
-  const hasEmptyParty = parties.length === 1 && parties[0].slots.every((id) => !id);
-  const party = createNewParty();
-  party.slots = result.slots;
-  if (hasEmptyParty) parties = [party]; else parties.push(party);
-  saveParties();
-  renderParties();
-
-  const names = result.slots.map((id) => monsters.find((m) => m.id === id)).filter(Boolean).map((m) => m.name).join('、');
-  appendAiMessage('bot', `${labels}が高いパーティーを追加しました（合計${result.score}）: ${names}`);
+  const excludeNote = excludedIds.size ? `（除外: ${mentioned.map((m) => m.name).join('、')}）` : '';
+  appendAiPartyChoices(results, `${labels}が高いパーティー候補です${excludeNote}。追加するものにチェックしてください。`);
 }
 
 function initializeAiSearch() {
   const button = document.getElementById('ai-search-btn');
   const panel = document.getElementById('ai-search-panel');
   const input = document.getElementById('ai-chat-input');
+  const clearButton = document.getElementById('ai-chat-clear');
   if (!button || !panel || !input) return;
 
   button.addEventListener('click', () => {
@@ -1039,6 +1092,13 @@ function initializeAiSearch() {
     button.setAttribute('aria-expanded', String(!panel.hidden));
     if (!panel.hidden) input.focus();
   });
+
+  if (clearButton) {
+    clearButton.addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+    });
+  }
 
   panel.addEventListener('submit', (event) => {
     event.preventDefault();
