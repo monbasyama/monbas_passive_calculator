@@ -1138,6 +1138,8 @@ function initializeAiSearch() {
   if (clearButton) {
     clearButton.addEventListener('click', () => {
       input.value = '';
+      const log = document.getElementById('ai-chat-log');
+      if (log) log.replaceChildren();
       input.focus();
     });
   }
