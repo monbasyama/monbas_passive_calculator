@@ -1084,3 +1084,5 @@ select {
 .ai-chat-user { align-self: flex-end; background: #dbeafe; }
 .ai-chat-input-row { display: flex; gap: 6px; }
 .ai-chat-input-row input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font: inherit; }
+.ai-party-choices { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.ai-party-choice { display: block; cursor: pointer; }
