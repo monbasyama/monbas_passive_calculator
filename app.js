@@ -947,22 +947,27 @@ function scorePartyForStats(slotIds, statKeys, single = false) {
     return statKeys.reduce((s, key) => s + (Number(monster[key]) || 0) + bonuses[key], 0);
   });
   const total = values.reduce((sum, v) => sum + v, 0);
-  return single ? { score: Math.max(0, ...values), total } : { score: total, total };
+  return { score: single ? Math.max(0, ...values) : total, total, values };
 }
 
-function optimizeParty(pool, statKeys, fixedIds = [], single = false) {
+function optimizeParty(pool, statKeys, fixedIds = [], single = false, condition = null) {
   const size = Math.min(AI_PARTY_SIZE, pool.length + fixedIds.length);
   const freeCount = size - fixedIds.length;
   if (size <= 0) return null;
 
   // 単体モードは最大値が同点でも合計が高い方を優先して探索を進める
   const evaluate = (ids) => {
-    const { score, total } = scorePartyForStats(ids, statKeys, single);
-    return { score, rank: single ? score * 1000 + total : score };
+    const { score, total, values } = scorePartyForStats(ids, statKeys, single);
+    if (!condition) return { score, rank: single ? score * 1000 + total : score };
+
+    const satisfied = values.filter((v) => v >= condition.min && v <= condition.max).length;
+    // 上限のみの条件では合計が低い方、それ以外は高い方を優先する
+    const tieBreak = condition.min === -Infinity ? -total : total;
+    return { score: satisfied, rank: Math.min(satisfied, condition.count) * 1e7 + satisfied * 1e4 + tieBreak };
   };
   const ranked = [...pool].sort((a, b) => statKeys.reduce((s, k) => s + b[k] - a[k], 0));
   let best = null;
-  let bestEval = { score: -1, rank: -1 };
+  let bestEval = { score: -1, rank: -Infinity };
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const free = attempt === 0
@@ -996,13 +1001,13 @@ function optimizeParty(pool, statKeys, fixedIds = [], single = false) {
   return { slots: [...best, ...Array(6 - size).fill('')], score: bestEval.score, rank: bestEval.rank };
 }
 
-function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count = 3, includedIds = [], single = false) {
+function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count = 3, includedIds = [], single = false, condition = null) {
   const pool = monsters.filter((m) => !excludedIds.has(m.id)
     && !includedIds.includes(m.id)
-    && statKeys.some((key) => m[key] > 0)
+    && (condition || statKeys.some((key) => m[key] > 0))
     && (!targets.length || targets.some((t) => m.passiveTarget.includes(t))));
 
-  const first = optimizeParty(pool, statKeys, includedIds, single);
+  const first = optimizeParty(pool, statKeys, includedIds, single, condition);
   if (!first) return [];
 
   const results = new Map();
@@ -1011,7 +1016,7 @@ function buildTopParties(statKeys, targets = [], excludedIds = new Set(), count 
   };
   addResult(first);
   first.slots.filter((id) => id && !includedIds.includes(id))
-    .forEach((id) => addResult(optimizeParty(pool.filter((m) => m.id !== id), statKeys, includedIds, single)));
+    .forEach((id) => addResult(optimizeParty(pool.filter((m) => m.id !== id), statKeys, includedIds, single, condition)));
 
   return [...results.values()].sort((a, b) => b.rank - a.rank).slice(0, count);
 }
@@ -1039,6 +1044,35 @@ function classifyMentionedMonsters(text) {
   return mentions;
 }
 
+function parseAiCondition(text) {
+  const t = text.normalize('NFKC');
+  const kanji = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5 };
+  const countMatch = t.match(/(\d+|[一二三四五])\s*(?:体|匹)/);
+  const count = countMatch ? Math.min(AI_PARTY_SIZE, Number(countMatch[1]) || kanji[countMatch[1]]) : 1;
+
+  let min = -Infinity;
+  let max = Infinity;
+  const range = t.match(/(\d+)\s*[〜~ー-]\s*(\d+)/);
+  if (range) {
+    min = Number(range[1]);
+    max = Number(range[2]);
+  } else {
+    const lower = t.match(/(\d+)\s*(以上|超)/);
+    const upper = t.match(/(\d+)\s*(以下|未満)/);
+    if (lower) min = Number(lower[1]) + (lower[2] === '超' ? 1 : 0);
+    if (upper) max = Number(upper[1]) - (upper[2] === '未満' ? 1 : 0);
+  }
+  if (min === -Infinity && max === Infinity) return null;
+  return { count: Math.max(1, count), min, max };
+}
+
+function describeCondition(condition) {
+  const range = condition.min !== -Infinity && condition.max !== Infinity
+    ? `${condition.min}〜${condition.max}`
+    : condition.min !== -Infinity ? `${condition.min}以上` : `${condition.max}以下`;
+  return `${condition.count}体以上が${range}`;
+}
+
 function parseAiSingleMode(text) {
   return /(1体|一体|単体|1匹|一匹)/.test(text);
 }
@@ -1054,7 +1088,7 @@ function appendAiMessage(role, text) {
   return item;
 }
 
-function appendAiPartyChoices(results, intro, single = false) {
+function appendAiPartyChoices(results, intro, single = false, hasCondition = false) {
   const message = appendAiMessage('bot', intro);
   if (!message) return;
 
@@ -1066,7 +1100,7 @@ function appendAiPartyChoices(results, intro, single = false) {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     const names = result.slots.map((id) => monsters.find((m) => m.id === id)).filter(Boolean).map((m) => m.name).join('、');
-    label.append(checkbox, ` ${index + 1}位（${single ? '最大' : '合計'}${result.score}）: ${names}`);
+    label.append(checkbox, ` ${index + 1}位（${hasCondition ? `条件達成${result.score}体` : `${single ? '最大' : '合計'}${result.score}`}）: ${names}`);
     list.appendChild(label);
   });
 
@@ -1106,10 +1140,19 @@ function handleAiSearch(text) {
   }
 
   const targets = parseAiTargets(cleaned);
-  const single = parseAiSingleMode(cleaned);
-  const results = buildTopParties(statKeys, targets, new Set(excluded.map((m) => m.id)), 3, included.map((m) => m.id), single);
+  const condition = parseAiCondition(cleaned);
+  const single = !condition && parseAiSingleMode(cleaned);
+  let results = buildTopParties(statKeys, targets, new Set(excluded.map((m) => m.id)), 3, included.map((m) => m.id), single, condition);
   const statLabels = PASSIVE_STATS.filter(({ key }) => statKeys.includes(key)).map(({ label }) => label).join('・');
   const labels = `${targets.length ? `${targets.join('・')}パッシブの` : ''}${single ? '1体の' : ''}${statLabels}`;
+  if (condition) {
+    const bestCount = results.length ? results[0].score : 0;
+    results = results.filter((r) => r.score >= condition.count);
+    if (!results.length) {
+      appendAiMessage('bot', `${labels}が${describeCondition(condition)}になるパーティーは見つかりませんでした（最大${bestCount}体）。`);
+      return;
+    }
+  }
   if (!results.length) {
     appendAiMessage('bot', `${labels}に該当するモンスターが見つかりませんでした。`);
     return;
@@ -1119,7 +1162,10 @@ function handleAiSearch(text) {
     excluded.length ? `除外: ${excluded.map((m) => m.name).join('、')}` : '',
     included.length ? `含む: ${included.map((m) => m.name).join('、')}` : ''
   ].filter(Boolean).join(' / ');
-  appendAiPartyChoices(results, `${labels}が高いパーティー候補です${notes ? `（${notes}）` : ''}。追加するものにチェックしてください。`, single);
+  const intro = condition
+    ? `${labels}が${describeCondition(condition)}になるパーティー候補です`
+    : `${labels}が高いパーティー候補です`;
+  appendAiPartyChoices(results, `${intro}${notes ? `（${notes}）` : ''}。追加するものにチェックしてください。`, single, Boolean(condition));
 }
 
 function initializeAiSearch() {
