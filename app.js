@@ -1086,12 +1086,34 @@ function parseAiSingleMode(text) {
   return /(1体|一体|単体|1匹|一匹)/.test(text);
 }
 
+function setAiInputText(text) {
+  const input = document.getElementById('ai-chat-input');
+  if (!input) return;
+  input.value = text;
+  input.focus();
+  input.setSelectionRange(text.length, text.length);
+}
+
 function appendAiMessage(role, text) {
   const log = document.getElementById('ai-chat-log');
   if (!log) return null;
   const item = document.createElement('div');
   item.className = `ai-chat-message ai-chat-${role}`;
   item.textContent = text;
+  if (role === 'user') {
+    item.classList.add('ai-chat-reusable');
+    item.tabIndex = 0;
+    item.setAttribute('role', 'button');
+    item.title = 'クリックで入力欄に貼り付け';
+    const reuse = () => setAiInputText(text);
+    item.addEventListener('click', reuse);
+    item.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        reuse();
+      }
+    });
+  }
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
   return item;
@@ -1256,6 +1278,18 @@ function initializeAiSearch() {
 
   input.addEventListener('input', showSuggestions);
   input.addEventListener('blur', () => setTimeout(hideSuggestions, 150));
+
+  const helpButton = document.getElementById('ai-help-btn');
+  const helpPanel = document.getElementById('ai-help-panel');
+  if (helpButton && helpPanel) {
+    helpButton.addEventListener('click', () => {
+      helpPanel.hidden = !helpPanel.hidden;
+      helpButton.setAttribute('aria-expanded', String(!helpPanel.hidden));
+    });
+    helpPanel.querySelectorAll('.ai-example-btn').forEach((example) => {
+      example.addEventListener('click', () => setAiInputText(example.textContent));
+    });
+  }
 
   if (clearButton) {
     clearButton.addEventListener('click', () => {
