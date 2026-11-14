@@ -58,6 +58,7 @@ const MONSTER_IMAGE_URLS = {
   'タラスク': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9meDlvMXlHVy5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'チェシャ猫・アリオク': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9KWnNNcE1hdS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'チビサタン': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9FOVJRSnlrTS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
+  'チンギス・ハーン': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC90d0tVczFPdS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ツイゴアブ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9vSE5HQmhXRC5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ツクヨミ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9QMDYyeTJIdS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ツチミカド': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9NRjVhc1JleC5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
@@ -239,6 +240,7 @@ const MONSTER_WIKI_URLS = {
   'タラスク': 'https://gamerch.com/monbas/875177',
   'チェシャ猫・アリオク': 'https://gamerch.com/monbas/1022093',
   'チビサタン': 'https://gamerch.com/monbas/255677',
+  'チンギス・ハーン': 'https://gamerch.com/monbas/1031997',
   'ツイゴアブ': 'https://gamerch.com/monbas/390004',
   'ツクヨミ': 'https://gamerch.com/monbas/714259',
   'ツチミカド': 'https://gamerch.com/monbas/928690',
@@ -420,6 +422,7 @@ const MONSTER_DATA = `
 チェシャ猫・アリオク|魔神|光|火＆光＆闇|15|0|15|5|0|0
 タラスク|魔獣|水|水＆闇|10|13|0|10|0|0
 チビサタン|魔神|闇|魔神|5|5|5|20|20|0
+チンギス・ハーン|異端|風|異端|10|0|0|35|0|0
 ツイゴアブ|魔神|風|風|8|0|10|4|0|0
 ツクヨミ|神族|闇|光＆闇|5|5|0|15|10|0
 ツチミカド|聖人|無|聖人|15|8|0|25|25|0
