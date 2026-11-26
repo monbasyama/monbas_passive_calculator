@@ -37,6 +37,7 @@ const MONSTER_IMAGE_URLS = {
   'クサビラ神': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9tQld6UTYwQy5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'クリぼっちマスティマ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9QYlZiUUNJMS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'ケツァルコアトル': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9CeDZ4dEtPRi5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
+  'コノハナサクヤヒメ': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9pZUwxUW51YS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'サハギンと愉快な仲間たち': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC90VGw5WkMybS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'サマースルト': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9FNUNtZmRKWS5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
   'サマービーチスター・ラー': 'https://cdn.gamerch.com/resize/eyJidWNrZXQiOiJnYW1lcmNoLWltZy1jb250ZW50cyIsImtleSI6Indpa2lcLzEzODZcL2VudHJ5XC9Yb280SkVDRC5wbmciLCJlZGl0cyI6eyJ3ZWJwIjp7InF1YWxpdHkiOjg1fSwidG9Gb3JtYXQiOiJ3ZWJwIn19',
@@ -219,6 +220,7 @@ const MONSTER_WIKI_URLS = {
   'クサビラ神': 'https://gamerch.com/monbas/938111',
   'クリぼっちマスティマ': 'https://gamerch.com/monbas/551413',
   'ケツァルコアトル': 'https://gamerch.com/monbas/217415',
+  'コノハナサクヤヒメ': 'https://gamerch.com/monbas/1036520',
   'サハギンと愉快な仲間たち': 'https://gamerch.com/monbas/836186',
   'サマースルト': 'https://gamerch.com/monbas/865900',
   'サマービーチスター・ラー': 'https://gamerch.com/monbas/788609',
@@ -401,6 +403,7 @@ const MONSTER_DATA = `
 クサビラ神|神族|風|水＆風|0|10|0|15|15|0
 クリぼっちマスティマ|魔神|水|水＆光＆闇|5|0|0|10|10|0
 ケツァルコアトル|聖獣|風|風|5|0|10|0|5|0
+コノハナサクヤヒメ|神族|火|火＆水＆光|10|0|0|20|15|0
 サハギンと愉快な仲間たち|魔族|水|水|15|15|0|5|0|0
 サマースルト|魔神|火|魔神|15|7|0|15|0|0
 サマービーチスター・ラー|神族|火|神族|10|10|0|20|15|0
