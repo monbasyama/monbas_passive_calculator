@@ -873,34 +873,39 @@ async function updateCommitDisplay() {
 }
 
 function generatePdfFromParties() {
-  // iPhoneのホーム画面から起動するスタンドアロン表示では、window.open で開いた
-  // 別ウィンドウからの印刷が動作せず一覧が表示されるだけになってしまうため、
-  // 別ウィンドウは使わず、現在のページ内に印刷専用領域を用意して印刷する。
-  let printStyle = document.getElementById('party-print-style');
-  if (!printStyle) {
-    printStyle = document.createElement('style');
-    printStyle.id = 'party-print-style';
-    printStyle.textContent = `
-      .party-print-root { display: none; }
-      @media print {
-        @page { margin: 8mm; }
-        body > *:not(.party-print-root) { display: none !important; }
-        .party-print-root { display: block !important; }
-      }
-    `;
-    document.head.appendChild(printStyle);
+  // iPhoneのホーム画面から起動するスタンドアロン表示では、別ウィンドウ印刷も
+  // そのままの印刷も動作しないため、PDFファイルを生成して共有シートから保存する。
+  // 通常のブラウザでは、従来どおり別ウィンドウを開いて印刷する。
+  const isStandalone = window.navigator.standalone === true ||
+    (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches);
+  if (isStandalone) {
+    generatePdfFromPartiesStandalone();
+    return;
   }
 
-  let printRoot = document.getElementById('party-print-root');
-  if (!printRoot) {
-    printRoot = document.createElement('main');
-    printRoot.id = 'party-print-root';
-    printRoot.className = 'party-print-root';
-    document.body.appendChild(printRoot);
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    alert('PDF出力画面を開けませんでした。ポップアップを許可してください。');
+    return;
   }
-  printRoot.innerHTML = buildPartyReportHtml();
 
-  const images = Array.from(printRoot.querySelectorAll('img'));
+  const printDocument = printWindow.document;
+  printDocument.open();
+  printDocument.write(`<!DOCTYPE html>
+    <html lang="ja">
+      <head>
+        <meta charset="UTF-8">
+        <title>パーティー比較</title>
+        <style>
+          @page { margin: 8mm; }
+          html, body { margin: 0; min-height: 0; background: #fff; }
+        </style>
+      </head>
+      <body><main class="party-print-root">${buildPartyReportHtml()}</main></body>
+    </html>`);
+  printDocument.close();
+
+  const images = Array.from(printDocument.images);
   const imageLoads = images.map((image) => {
     if (image.complete) return Promise.resolve();
 
@@ -916,14 +921,110 @@ function generatePdfFromParties() {
     });
   });
 
-  window.addEventListener('afterprint', () => {
-    printRoot.innerHTML = '';
-  }, { once: true });
-
   Promise.all(imageLoads).then(() => {
-    window.focus();
-    window.print();
+    printWindow.addEventListener('afterprint', () => printWindow.close(), { once: true });
+    printWindow.focus();
+    printWindow.print();
   });
+}
+
+const PDF_LIBRARY_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+];
+
+function loadExternalScript(url) {
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${url}"]`);
+    if (existing) {
+      if (existing.dataset.loaded === 'true') {
+        resolve();
+      } else {
+        existing.addEventListener('load', () => resolve(), { once: true });
+        existing.addEventListener('error', () => reject(new Error(`script load failed: ${url}`)), { once: true });
+      }
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = url;
+    script.addEventListener('load', () => {
+      script.dataset.loaded = 'true';
+      resolve();
+    }, { once: true });
+    script.addEventListener('error', () => reject(new Error(`script load failed: ${url}`)), { once: true });
+    document.head.appendChild(script);
+  });
+}
+
+async function buildPartyPdfBlob() {
+  for (const url of PDF_LIBRARY_URLS) {
+    await loadExternalScript(url);
+  }
+  const html2canvas = window.html2canvas;
+  const jsPDF = window.jspdf && window.jspdf.jsPDF;
+  if (typeof html2canvas !== 'function' || typeof jsPDF !== 'function') {
+    throw new Error('PDF library unavailable');
+  }
+
+  const capture = document.createElement('div');
+  capture.className = 'pdf-print-content';
+  capture.style.cssText = 'position:absolute;left:-10000px;top:0;width:1123px;background:#ffffff;';
+  capture.innerHTML = buildPartyReportHtml();
+  // モンスター画像の配信元は CORS の制限でキャンバスに取り込めないため、
+  // スタンドアロン版のPDFでは画像を表示できない（表の数値・名前はすべて入る）。
+  capture.querySelectorAll('img').forEach((image) => image.remove());
+  document.body.appendChild(capture);
+  try {
+    const canvas = await html2canvas(capture, { backgroundColor: '#ffffff', scale: 2, logging: false });
+    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const margin = 8;
+    const contentWidth = pdf.internal.pageSize.getWidth() - margin * 2;
+    const contentHeight = pdf.internal.pageSize.getHeight() - margin * 2;
+    const pxPerMm = canvas.width / contentWidth;
+    const pageHeightPx = Math.max(1, Math.floor(contentHeight * pxPerMm));
+    let rendered = 0;
+    let pageIndex = 0;
+    while (rendered < canvas.height) {
+      const sliceHeight = Math.min(pageHeightPx, canvas.height - rendered);
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = sliceHeight;
+      const context = pageCanvas.getContext('2d');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+      context.drawImage(canvas, 0, rendered, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+      if (pageIndex > 0) pdf.addPage();
+      pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, contentWidth, sliceHeight / pxPerMm);
+      rendered += sliceHeight;
+      pageIndex += 1;
+    }
+    return pdf.output('blob');
+  } finally {
+    capture.remove();
+  }
+}
+
+async function generatePdfFromPartiesStandalone() {
+  try {
+    const blob = await buildPartyPdfBlob();
+    const fileName = 'パーティー比較.pdf';
+    const file = new File([blob], fileName, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (error) {
+    if (error && error.name === 'AbortError') return;
+    alert('PDFの作成に失敗しました。通信環境を確認してもう一度お試しください。');
+  }
 }
 
 const AI_STAT_KEYWORDS = {
