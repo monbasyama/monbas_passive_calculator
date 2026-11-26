@@ -873,29 +873,34 @@ async function updateCommitDisplay() {
 }
 
 function generatePdfFromParties() {
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    alert('PDF出力画面を開けませんでした。ポップアップを許可してください。');
-    return;
+  // iPhoneのホーム画面から起動するスタンドアロン表示では、window.open で開いた
+  // 別ウィンドウからの印刷が動作せず一覧が表示されるだけになってしまうため、
+  // 別ウィンドウは使わず、現在のページ内に印刷専用領域を用意して印刷する。
+  let printStyle = document.getElementById('party-print-style');
+  if (!printStyle) {
+    printStyle = document.createElement('style');
+    printStyle.id = 'party-print-style';
+    printStyle.textContent = `
+      .party-print-root { display: none; }
+      @media print {
+        @page { margin: 8mm; }
+        body > *:not(.party-print-root) { display: none !important; }
+        .party-print-root { display: block !important; }
+      }
+    `;
+    document.head.appendChild(printStyle);
   }
 
-  const printDocument = printWindow.document;
-  printDocument.open();
-  printDocument.write(`<!DOCTYPE html>
-    <html lang="ja">
-      <head>
-        <meta charset="UTF-8">
-        <title>パーティー比較</title>
-        <style>
-          @page { margin: 8mm; }
-          html, body { margin: 0; min-height: 0; background: #fff; }
-        </style>
-      </head>
-      <body><main class="party-print-root">${buildPartyReportHtml()}</main></body>
-    </html>`);
-  printDocument.close();
+  let printRoot = document.getElementById('party-print-root');
+  if (!printRoot) {
+    printRoot = document.createElement('main');
+    printRoot.id = 'party-print-root';
+    printRoot.className = 'party-print-root';
+    document.body.appendChild(printRoot);
+  }
+  printRoot.innerHTML = buildPartyReportHtml();
 
-  const images = Array.from(printDocument.images);
+  const images = Array.from(printRoot.querySelectorAll('img'));
   const imageLoads = images.map((image) => {
     if (image.complete) return Promise.resolve();
 
@@ -911,10 +916,13 @@ function generatePdfFromParties() {
     });
   });
 
+  window.addEventListener('afterprint', () => {
+    printRoot.innerHTML = '';
+  }, { once: true });
+
   Promise.all(imageLoads).then(() => {
-    printWindow.addEventListener('afterprint', () => printWindow.close(), { once: true });
-    printWindow.focus();
-    printWindow.print();
+    window.focus();
+    window.print();
   });
 }
 
