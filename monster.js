@@ -548,7 +548,7 @@ const MONSTER_DATA = `
 `.trim().split('\n').map((row, index) => {
   const [name, race, element, targets, attack, defense, agility, hp, sp, crt] = row.split('|');
   return {
-    id: `monster-supplied-${String(index + 1).padStart(3, '0')}`,
+    id: `monster-supplied-${name}`,
     name,
     race,
     element,
@@ -563,3 +563,62 @@ const MONSTER_DATA = `
     imageUrl: MONSTER_IMAGE_URLS[name] || ''
   };
 });
+
+// 旧形式（データの並び順で付けた連番）のモンスターIDを、名前ベースのIDへ移行する。
+// 連番IDはモンスターを途中に追加・削除すると後ろのモンスターがずれてしまい、
+// 端末に保存されたパーティのモンスターまでずれてしまうため、
+// 保存済みのモンスター一覧に残っている「旧ID→名前」の対応を使って
+// パーティのスロットもあわせて書き換える。
+// このファイルは app.js より先に読み込まれるので、アプリ起動前に移行が完了する。
+// ※ストレージキーは app.js の STORAGE_KEYS と一致させること。
+(function migrateLegacyMonsterIds() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const MONSTERS_KEY = 'monbas_monsters_v1';
+    const PARTIES_KEY = 'monbas_parties_v1';
+    const storedMonsters = localStorage.getItem(MONSTERS_KEY);
+    if (!storedMonsters) return;
+    const monsterList = JSON.parse(storedMonsters);
+    if (!Array.isArray(monsterList)) return;
+    const legacyIdPattern = /^monster-supplied-\d+$/;
+    const idMap = new Map();
+    const migratedMonsters = monsterList.map((monster) => {
+      if (
+        monster &&
+        typeof monster.id === 'string' &&
+        legacyIdPattern.test(monster.id) &&
+        typeof monster.name === 'string' &&
+        monster.name
+      ) {
+        const newId = `monster-supplied-${monster.name}`;
+        if (newId !== monster.id) {
+          idMap.set(monster.id, newId);
+          return { ...monster, id: newId };
+        }
+      }
+      return monster;
+    });
+    if (idMap.size === 0) return;
+    localStorage.setItem(MONSTERS_KEY, JSON.stringify(migratedMonsters));
+    const storedParties = localStorage.getItem(PARTIES_KEY);
+    if (!storedParties) return;
+    const partyList = JSON.parse(storedParties);
+    if (!Array.isArray(partyList)) return;
+    let changed = false;
+    partyList.forEach((party) => {
+      if (!party || !Array.isArray(party.slots)) return;
+      party.slots = party.slots.map((slot) => {
+        if (typeof slot === 'string' && idMap.has(slot)) {
+          changed = true;
+          return idMap.get(slot);
+        }
+        return slot;
+      });
+    });
+    if (changed) {
+      localStorage.setItem(PARTIES_KEY, JSON.stringify(partyList));
+    }
+  } catch (error) {
+    // 移行に失敗してもアプリの読み込みは続行する
+  }
+})();
