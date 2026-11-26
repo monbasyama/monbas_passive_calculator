@@ -970,11 +970,42 @@ async function buildPartyPdfBlob() {
   capture.className = 'pdf-print-content';
   capture.style.cssText = 'position:absolute;left:-10000px;top:0;width:1123px;background:#ffffff;';
   capture.innerHTML = buildPartyReportHtml();
-  // モンスター画像の配信元は CORS の制限でキャンバスに取り込めないため、
-  // スタンドアロン版のPDFでは画像を表示できない（表の数値・名前はすべて入る）。
-  capture.querySelectorAll('img').forEach((image) => image.remove());
   document.body.appendChild(capture);
+  // モンスター画像の配信元は CORS の制限でそのままではキャンバスに取り込めないため、
+  // 画像プロキシ経由で取得し直した画像に差し替えてから取り込む（アイコンも今まで通り表示する）。
+  const objectUrls = [];
   try {
+    const imageUrlCache = new Map();
+    const fetchImageObjectUrl = (src) => {
+      if (!imageUrlCache.has(src)) {
+        imageUrlCache.set(src, (async () => {
+          const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(src.replace(/^https?:\/\//, ''))}`;
+          const response = await fetch(proxyUrl);
+          if (!response.ok) throw new Error('image fetch failed');
+          const objectUrl = URL.createObjectURL(await response.blob());
+          objectUrls.push(objectUrl);
+          return objectUrl;
+        })());
+      }
+      return imageUrlCache.get(src);
+    };
+    const convertImage = async (image) => {
+      try {
+        image.src = await fetchImageObjectUrl(image.src);
+        await new Promise((resolve) => {
+          if (image.complete && image.naturalWidth > 0) {
+            resolve();
+            return;
+          }
+          image.addEventListener('load', () => resolve(), { once: true });
+          image.addEventListener('error', () => resolve(), { once: true });
+          setTimeout(() => resolve(), 5000);
+        });
+      } catch (error) {
+        image.remove();
+      }
+    };
+    await Promise.all(Array.from(capture.querySelectorAll('img')).map(convertImage));
     const canvas = await html2canvas(capture, { backgroundColor: '#ffffff', scale: 2, logging: false });
     const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const margin = 8;
@@ -1001,6 +1032,7 @@ async function buildPartyPdfBlob() {
     return pdf.output('blob');
   } finally {
     capture.remove();
+    objectUrls.forEach((url) => URL.revokeObjectURL(url));
   }
 }
 
